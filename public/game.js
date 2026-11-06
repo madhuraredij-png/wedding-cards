@@ -36,13 +36,65 @@ const $$ = s => [...document.querySelectorAll(s)];
 const stage = $('#stage');
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+// Desktop: one 1440x900 stage scaled to fit. Phone (below 700px wide): a 390x844 stage scaled
+// the same way, except the finale, which is a taller page scaled to the width and scrolled.
+const PHONE = matchMedia('(max-width: 699px)');
+const isPhone = () => PHONE.matches;
+const PHONE_W = 390, PHONE_H = 844, PHONE_FINALE_H = 1234;
+let sizer = null; // phone finale only: an in-flow spacer that gives #fit its scroll height
 function fit() {
   const box = $('#fit').getBoundingClientRect();
-  const s = Math.min(box.width / 1440, box.height / 900);
-  stage.style.transform = `translate(${(box.width - 1440 * s) / 2}px, ${(box.height - 900 * s) / 2}px) scale(${s})`;
+  if (sizer) sizer.style.height = '0px';
+  if (!isPhone()) {
+    const s = Math.min(box.width / 1440, box.height / 900);
+    stage.style.transform = `translate(${(box.width - 1440 * s) / 2}px, ${(box.height - 900 * s) / 2}px) scale(${s})`;
+    stage.dataset.scale = s;
+    return;
+  }
+  const tall = stage.classList.contains('tall');
+  const h = tall ? PHONE_FINALE_H : PHONE_H;
+  const s = tall ? box.width / PHONE_W : Math.min(box.width / PHONE_W, box.height / h);
+  stage.style.transform = `translate(${(box.width - PHONE_W * s) / 2}px, ${tall ? 0 : (box.height - h * s) / 2}px) scale(${s})`;
+  if (tall) {
+    if (!sizer) { sizer = document.createElement('div'); sizer.setAttribute('aria-hidden', 'true'); $('#fit').appendChild(sizer); }
+    sizer.style.height = Math.ceil(h * s) + 'px';
+  }
   stage.dataset.scale = s;
+  phoneFrame(h);
 }
-addEventListener('resize', fit); fit();
+
+// Phone frame: the same bands and rosettes as border.svg, drawn at half size (about 33px)
+// for whatever height the phone stage has.
+let frameSrc = null, frameH = 0;
+fetch('border.svg').then(r => r.text()).then(t => { frameSrc = t; frameH = 0; if (isPhone()) fit(); }).catch(() => {});
+function phoneFrame(h) {
+  if (!frameSrc || frameH === h) return;
+  frameH = h;
+  const W = PHONE_W * 2, H = h * 2;
+  const defs = frameSrc.slice(frameSrc.indexOf('<defs>'), frameSrc.indexOf('</defs>') + 7);
+  const g0 = frameSrc.indexOf('<g transform="translate(0 0)">');
+  const rosette = frameSrc.slice(frameSrc.indexOf('>', g0) + 1, frameSrc.indexOf('</g>', g0));
+  const box = (i, fill, extra = '') => `<rect x="${i}" y="${i}" width="${W - 2 * i}" height="${H - 2 * i}" fill="${fill}"${extra}/>`;
+  const band = (i, t, h, v) => `<rect x="${i}" y="${i}" width="${W - 2 * i}" height="${t}" fill="url(#${h})"/><rect x="${i}" y="${H - i - t}" width="${W - 2 * i}" height="${t}" fill="url(#${h})"/>` +
+    `<rect x="${i}" y="${i}" width="${t}" height="${H - 2 * i}" fill="url(#${v})"/><rect x="${W - i - t}" y="${i}" width="${t}" height="${H - 2 * i}" fill="url(#${v})"/>`;
+  const corners = [[0, 0], [W - 70, 0], [0, H - 70], [W - 70, H - 70]].map(([x, y]) => `<g transform="translate(${x} ${y})">${rosette}</g>`).join('');
+  // Created on demand so the desktop page keeps exactly the prototype's elements.
+  let el = $('.frame-phone');
+  if (!el) { el = document.createElement('div'); el.className = 'frame-phone'; el.setAttribute('aria-hidden', 'true'); stage.appendChild(el); }
+  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${PHONE_W}" height="${h}" viewBox="0 0 ${W} ${H}">${defs}` +
+    box(4, 'none', ' stroke="#8EA86E" stroke-width="8"') + box(8.5, 'none', ' stroke="#5F7F45" stroke-width="1"') + box(11, 'none', ' stroke="#C44D78" stroke-width="1.6"') +
+    band(13, 14, 'chH', 'chV') + box(28.5, 'none', ' stroke="#8EA86E" stroke-width="1.6"') + band(30, 18, 'roH', 'roV') +
+    box(49, 'none', ' stroke="#8EA86E" stroke-width="1.6"') + band(50, 10, 'diH', 'diV') + box(61, 'none', ' stroke="#C44D78" stroke-width="2"') +
+    box(64.5, 'none', ' stroke="#8EA86E" stroke-width="1"') + corners + '</svg>';
+}
+function relayout() {
+  fit(); buildGarland();
+  if (G && !$('#play').hidden) { renderNiches(); renderSpread(false); }
+  if (!$('#finale').hidden) openFinale(finWin);
+}
+addEventListener('resize', fit);
+PHONE.addEventListener('change', relayout);
+fit();
 
 function face(c) {
   if (c.img) return `<img src="cards/${c.img}" alt="${c.alt}">`;
@@ -50,7 +102,7 @@ function face(c) {
   return `<div class="ph${s.red ? ' red' : ''}" role="img" aria-label="${c.full}"><span class="ix">${c.rank}<br>${s.sym}</span><div class="art"><span class="pip">${s.sym}</span><span class="note">Art coming</span></div><span class="ix b">${c.rank}<br>${s.sym}</span></div>`;
 }
 function stripHTML(c) {
-  if (!c) return `<span class="txt quiet">Hover or tap a card to read what it shows.</span>`;
+  if (!c) return `<span class="txt quiet">${isPhone() ? 'Tap' : 'Hover or tap'} a card to read what it shows.</span>`;
   const s = SUIT[c.suit];
   return `<span class="sym${s.red ? ' red' : ''}" aria-label="${c.full}">${c.rank} ${s.sym}</span><span class="txt">${c.meaning}</span>`;
 }
@@ -94,6 +146,12 @@ function deal() {
 
 // ---------- Rendering ----------
 const LEFTS = [20,180,340,500,660,820], TOPS = [88,58,40,40,58,88], ROTS = [-10,-6,-2,2,6,10];
+// Phone: two rows of up to three cards, each row on a gentle arc (center higher, outward tilt).
+function phoneSpot(i, n) {
+  const first = Math.min(3, n), row = i < first ? 0 : 1, m = row ? n - first : first, j = row ? i - first : i;
+  const d = j - (m - 1) / 2;
+  return { left: 153 + Math.round(d * 98), top: (row ? 150 : 0) + Math.round(10 * Math.abs(d)), rot: 5 * d };
+}
 function renderNiches() {
   $('#niches').innerHTML = SUITS.map(s => {
     const p = G.placed[s.k], locked = G.locked.includes(s.k);
@@ -110,10 +168,11 @@ function renderNiches() {
   $('#progress').textContent = `${G.locked.length} of 4 ceremonies complete`;
 }
 function renderSpread(animate) {
-  const n = G.spread.length, off = (6 - n) * 80;
+  const n = G.spread.length, off = (6 - n) * 80, phone = isPhone();
   $('#spread').innerHTML = G.spread.map((c, i) => {
     const idx = Math.min(5, i + Math.floor((6 - n) / 2));
-    return `<div class="spot${animate ? ' deal' : ''}" data-id="${c.id}" style="--i:${i};left:${LEFTS[i] + off}px;top:${TOPS[idx]}px;transform:rotate(${ROTS[idx]}deg)">
+    const p = phone ? phoneSpot(i, n) : { left: LEFTS[i] + off, top: TOPS[idx], rot: ROTS[idx] };
+    return `<div class="spot${animate ? ' deal' : ''}" data-id="${c.id}" style="--i:${i};left:${p.left}px;top:${p.top}px;transform:rotate(${p.rot}deg)">
       <button type="button" class="card${c.royal ? ' royal' : ''}" data-id="${c.id}" aria-label="${c.full}${c.royal ? ', royal card' : ''}">${face(c)}${c.royal ? '<div class="foil"></div>' : ''}</button>
       <p class="lbl">${c.label}</p></div>`;
   }).join('');
@@ -129,7 +188,12 @@ function refreshLift() {
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 
-function show(id) { ['intro','play','lock','finale'].forEach(s => $('#' + s).hidden = s !== id); }
+function show(id) {
+  ['intro','play','lock','finale'].forEach(s => $('#' + s).hidden = s !== id);
+  stage.classList.toggle('tall', id === 'finale');
+  $('#fit').scrollTop = 0;
+  fit();
+}
 
 // ---------- Play interactions ----------
 const spreadEl = $('#spread');
@@ -197,8 +261,9 @@ addEventListener('pointermove', e => {
     drag.ghost = document.createElement('div'); drag.ghost.className = 'ghost';
     drag.ghost.innerHTML = face(drag.c); stage.appendChild(drag.ghost);
   }
-  drag.ghost.style.left = ((e.clientX - r.left) / sc - 70) + 'px';
-  drag.ghost.style.top = ((e.clientY - r.top) / sc - 98) + 'px';
+  const half = isPhone() ? [42, 59] : [70, 98];
+  drag.ghost.style.left = ((e.clientX - r.left) / sc - half[0]) + 'px';
+  drag.ghost.style.top = ((e.clientY - r.top) / sc - half[1]) + 'px';
 });
 addEventListener('pointerup', e => {
   if (!drag) return;
@@ -242,31 +307,43 @@ function openLock(suit) {
   const lock = $('#lock'); lock.hidden = false; lock.classList.remove('show'); void lock.offsetWidth; lock.classList.add('show');
   $('#continueBtn').focus({preventScroll:true});
 }
-(function garland() {
-  const out = [];
-  for (let i = 0; i <= 30; i++) {
-    const a = Math.PI + Math.PI * i / 30, pink = i % 3 === 1;
-    const x = Math.round(720 + 254 * Math.cos(a) - 11), y = Math.round(384 + 254 * Math.sin(a) - 11);
+// Garland around the arch and varmala across the couple. Phone uses the same shapes on the smaller arch.
+function buildGarland() {
+  const g = isPhone()
+    ? { cx: 195, cy: 280, r: 159, n: 24, bead: 7, vx: 131, vw: 128, vy: 368, sag: 200, vn: 16 }
+    : { cx: 720, cy: 384, r: 254, n: 30, bead: 11, vx: 600, vw: 240, vy: 484, sag: 240, vn: 22 };
+  const out = [], b = g.bead;
+  for (let i = 0; i <= g.n; i++) {
+    const a = Math.PI + Math.PI * i / g.n, pink = i % 3 === 1;
+    const x = Math.round(g.cx + g.r * Math.cos(a) - b), y = Math.round(g.cy + g.r * Math.sin(a) - b);
     out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(i * 41) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
   }
-  for (let k = 0; k <= 22; k++) {
-    const t = k / 22, x = Math.round(600 + 240 * t - 11), y = Math.round(484 + 240 * t * (1 - t) - 11), pink = k % 4 === 2;
+  for (let k = 0; k <= g.vn; k++) {
+    const t = k / g.vn, x = Math.round(g.vx + g.vw * t - b), y = Math.round(g.vy + g.sag * t * (1 - t) - b), pink = k % 4 === 2;
     out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(k * 37) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
   }
   $('#garland').innerHTML = out.join('');
-})();
-$('#continueBtn').addEventListener('click', () => {
+}
+buildGarland();
+// Leaving the lock moment: back to play (dealing fresh royals if none are left in the spread),
+// or on to the finale after the fourth pair.
+function leaveLock() {
   $('#lock').hidden = true;
-  if (G.locked.length === 4) { openFinale(true); return; }
+  if (G.locked.length === 4) return true;
   if (!G.spread.some(c => c.royal)) { deal(); renderNiches(); renderSpread(true); }
-});
+  return false;
+}
+$('#continueBtn').addEventListener('click', () => { if (leaveLock()) openFinale(true); });
 
 // ---------- Finale / deck view ----------
-let finFrom = 'intro';
+let finFrom = 'intro', finWin = false, finPinned = null;
 function openFinale(win) {
-  finFrom = win ? 'intro' : (!$('#play').hidden ? 'play' : 'intro');
+  finWin = win;
+  if ($('#finale').hidden) finPinned = null;
+  const read = (isPhone() ? 'Tap' : 'Hover') + ' any card to read it.';
+  if ($('#finale').hidden) finFrom = win ? 'intro' : (!$('#play').hidden ? 'play' : 'intro');
   $('#finTitle').textContent = win ? 'The wedding is complete.' : 'The whole deck';
-  $('#finSub').textContent = win ? 'Ketaki and Prasanna made it to every ceremony. Hover any card to read it.' : 'Fifty-two cards, one wedding. Hover any card to read it.';
+  $('#finSub').textContent = win ? 'Ketaki and Prasanna made it to every ceremony. ' + read : 'Fifty-two cards, one wedding. ' + read;
   $('#finBack').textContent = win ? 'Back to start' : 'Back';
   $('#couples').innerHTML = SUITS.map(s => {
     const q = BY_ID['Q' + s.k], k = BY_ID['K' + s.k];
@@ -274,14 +351,14 @@ function openFinale(win) {
   }).join('');
   $('#fans').innerHTML = SUITS.map(s => {
     const cards = CARDS.filter(c => c.suit === s.k && !c.royal);
-    return `<div class="fan-row"><span class="caps" style="font-size:12px">${s.sym}&nbsp; ${s.name.toUpperCase()}</span><div class="fan">${cards.map((c, i) =>
+    return `<div class="fan-row"><span class="caps fan-label">${s.sym}&nbsp; ${s.name.toUpperCase()}</span><div class="fan">${cards.map((c, i) =>
       `<button type="button" class="mini${c.img ? '' : ' ph-mini'}" data-id="${c.id}" style="transform:rotate(${((i - 5) * 1.6).toFixed(1)}deg)">${face(c)}</button>`).join('')}</div></div>`;
   }).join('');
-  $('#finStrip').innerHTML = stripHTML(null);
+  $('#finStrip').innerHTML = stripHTML(finPinned && BY_ID[finPinned]);
   if (!$('#lock').hidden) $('#lock').hidden = true;
-  show('finale');
+  if ($('#finale').hidden) show('finale');
+  if (finPinned) finFocus(finPinned);
 }
-let finPinned = null;
 function finFocus(id) {
   $$('#finale .mini').forEach(m => m.classList.toggle('on', m.dataset.id === id));
   $('#finStrip').innerHTML = stripHTML(id ? BY_ID[id] : null);
@@ -298,7 +375,11 @@ async function start() { await cardsReady; newGame(); show('play'); renderNiches
 $('#startBtn').addEventListener('click', start);
 document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]'); if (!g) return;
-  if (g.dataset.go === 'deck') cardsReady.then(() => openFinale(false));
+  if (g.dataset.go === 'deck') {
+    // From the lock moment (phone), finish leaving it first so "Back" returns to a playable spread.
+    if (!$('#lock').hidden && leaveLock()) { openFinale(true); return; }
+    cardsReady.then(() => openFinale(false));
+  }
   if (g.dataset.go === 'restart') { $('#lock').hidden = true; start(); }
 });
 addEventListener('keydown', e => { if (e.key === 'Escape' && G && G.selected) { G.selected = null; renderNiches(); refreshLift(); } });

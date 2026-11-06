@@ -55,10 +55,12 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 
 ## Phone layout (390×844, mockups P1–P4 on the design canvas)
 
-- Use it below about 700px wide. Same screens, flow and styling as desktop, with a thinner border (about 33px).
+- Used below 700px wide (`@media (max-width: 699px)` in styles.css, `isPhone()` in game.js). Same screens, flow and styling as desktop, with a thinner border (about 33px, drawn by game.js from border.svg's own patterns at half size).
+- Built on a 390×844 stage scaled to fit the screen, like desktop's 1440×900. On short screens (e.g. Safari with its bars) the whole stage shrinks and cream shows at the sides; nothing is cropped. The finale is a 390×1234 page scaled to the width and scrolled.
+- Wording on phone says "Tap" where desktop says "Hover" (meaning strip prompt, finale subtitle).
 - Intro: names, title (42px) and instruction at the top; a 270px arch with three card backs on a plinth; Deal and View the deck stacked below; small mirrored folk sprigs in the bottom corners.
 - Play: header with the title and "View the deck" (no ceremony counter; it was removed on desktop too and is kept only as screen-reader text). Niches in a 2×2 grid (132×104 arches, 38×53 slots, 9.5px ceremony labels). The spread is two rows of three cards (84×118), each row on a gentle arc. The lifted card scales to 125%. The meaning strip may wrap to two lines on phone. Deal again (44px tall) sits under the strip. No corner sprigs on this screen.
-- Lock moment: a 300px arch in the ceremony's colors with the couple at 104×146, garland and varmala, plinth, "CEREMONY COMPLETE", the ceremony heading at 40px ("Just Married!" for The Wedding), Continue, and View the deck. Play again in the header.
+- Lock moment: a 300px arch in the ceremony's colors with the couple at 104×146, garland and varmala, plinth, "CEREMONY COMPLETE", the ceremony heading at 40px ("Just Married!" for The Wedding), Continue, and View the deck (phone only; desktop's lock moment has no deck link). Play again in the header.
 - Finale: a scrolling page. Title and subtitle, the four couples in a 2×2 grid, then the four suits as stacked fans of 11 cards (50×70, overlapping by 25px), the meaning strip, Play again and Back to start.
 
 ## Content
@@ -80,6 +82,5 @@ Gaps to fill:
 
 ## Next steps
 
-- Build the phone layout (below). Today the 1440×900 stage just scales down.
 - Keyboard play end to end (Tab to a royal, Enter to select, Tab to a slot, Enter to place) and screen-reader labels on every card.
 - Keep everything a static site so it can be hosted on Madhura's portfolio.

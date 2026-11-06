@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>To the Wedding</title>
 <meta name="description" content="A one-minute card game presenting Madhura Redij's illustrated wedding deck for Ketaki and Prasanna.">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -18,26 +18,28 @@
   <!-- INTRO -->
   <section class="screen" id="intro" aria-label="Start">
     <div aria-hidden="true">
-      <div class="flank" style="position:absolute;left:180px;top:0;width:140px;height:900px"></div>
-      <div class="flank" style="position:absolute;left:1120px;top:0;width:140px;height:900px;transform:scaleX(-1)"></div>
+      <div class="flank flank-l"></div>
+      <div class="flank flank-r"></div>
+      <div class="corner intro-corner intro-corner-l"></div>
+      <div class="corner intro-corner intro-corner-r"></div>
     </div>
-    <div style="position:absolute;top:88px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
-      <p class="caps" style="margin:0;font-size:15px;letter-spacing:.42em;color:var(--rose)">KETAKI &amp; PRASANNA</p>
-      <h1 style="margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:64px;line-height:1.05;color:var(--rose)">To the Wedding</h1>
-      <p style="margin:2px 0 0;font-size:16px;color:var(--ink-soft)">Bring the couple to each of their four ceremonies.</p>
+    <div class="intro-head">
+      <p class="caps intro-names">KETAKI &amp; PRASANNA</p>
+      <h1 class="intro-title">To the Wedding</h1>
+      <p class="intro-line">Bring the couple to each of their four ceremonies.</p>
     </div>
-    <div style="position:absolute;left:500px;top:228px;width:440px;display:flex;flex-direction:column;align-items:center">
-      <div class="rim" style="width:440px;height:430px"><div class="rim2"><div class="recess" style="background:radial-gradient(ellipse at 50% 85%,#B8CBA0,#8FA97B 70%);box-shadow:inset 0 28px 44px rgba(40,55,25,.5),inset 14px 0 24px rgba(40,55,25,.25),inset -14px 0 24px rgba(40,55,25,.25)">
-        <div style="position:absolute;left:0;right:0;bottom:34px;height:270px;perspective:900px">
-          <img class="back" src="cards/back.png" alt="" style="left:72px;top:24px;transform:rotateX(14deg) rotateZ(-12deg) translateZ(-20px)">
-          <img class="back" src="cards/back.png" alt="" style="left:132px;top:24px;transform:rotateX(14deg) rotateZ(10deg) translateZ(-10px)">
-          <img class="back" src="cards/back.png" alt="Card back: Ketaki and Prasanna beneath a floral arch" style="left:102px;top:12px;transform:rotateX(14deg) translateZ(10px)">
+    <div class="intro-arch">
+      <div class="rim intro-rim"><div class="rim2"><div class="recess intro-recess">
+        <div class="intro-stack">
+          <img class="back back-1" src="cards/back.png" alt="">
+          <img class="back back-2" src="cards/back.png" alt="">
+          <img class="back back-3" src="cards/back.png" alt="Card back: Ketaki and Prasanna beneath a floral arch">
         </div>
       </div></div></div>
-      <div class="step-top" style="width:500px"></div>
-      <div class="step-front" style="width:540px" data-dias="18"></div>
+      <div class="step-top intro-step-top"></div>
+      <div class="step-front intro-step-front" data-dias="18"></div>
     </div>
-    <div style="position:absolute;left:0;right:0;bottom:70px;display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="intro-actions">
       <button class="btn" id="startBtn" type="button">Deal</button>
       <button class="link" type="button" data-go="deck">View the deck</button>
     </div>
@@ -53,8 +55,8 @@
     <div class="floor" aria-hidden="true"></div>
     <section class="spread" aria-label="Your spread"><div class="spread-tilt" id="spread"></div></section>
     <div aria-hidden="true">
-      <div class="corner" style="left:66px"></div>
-      <div class="corner" style="left:1164px;transform:scaleX(-1)"></div>
+      <div class="corner corner-l"></div>
+      <div class="corner corner-r"></div>
     </div>
     <div class="under">
       <div class="strip" id="strip" role="status"></div>
@@ -71,43 +73,45 @@
       <button class="link" type="button" data-go="restart">Play again</button>
     </header>
     <div class="lock-arch">
-      <div class="rim" id="lockRim" style="position:absolute;left:470px;top:134px;width:500px;height:470px;box-shadow:0 2px 0 rgba(255,255,255,.55) inset,0 0 0 6px rgba(231,169,60,.25),0 0 60px rgba(231,169,60,.45),0 40px 60px -24px rgba(90,40,30,.45)">
+      <div class="rim lock-rim" id="lockRim">
         <div class="rim2" id="lockRim2"><div class="recess" id="lockRecess">
-          <div style="position:absolute;inset:0;perspective:1000px">
-            <div class="big" style="left:98px;top:140px;transform:rotateY(14deg) rotateZ(-5deg)"><img id="lockK" alt=""><div class="foil"></div></div>
-            <div class="big" style="left:176px;top:140px;transform:rotateY(-14deg) rotateZ(5deg);z-index:2"><img id="lockQ" alt=""><div class="foil"></div></div>
+          <div class="lock-cards">
+            <div class="big big-k"><img id="lockK" alt=""><div class="foil"></div></div>
+            <div class="big big-q"><img id="lockQ" alt=""><div class="foil"></div></div>
           </div>
         </div></div>
       </div>
       <div id="garland" aria-hidden="true"></div>
-      <div style="position:absolute;left:0;right:0;top:604px;display:flex;flex-direction:column;align-items:center">
-        <div class="step-top" style="width:540px"></div>
-        <div class="step-front" style="width:580px" data-dias="20"></div>
+      <div class="lock-plinth">
+        <div class="step-top lock-step-top"></div>
+        <div class="step-front lock-step-front" data-dias="20"></div>
       </div>
     </div>
-    <div style="position:absolute;left:0;right:0;top:684px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
-      <p class="caps" style="margin:0;letter-spacing:.32em;color:#8A5A12">CEREMONY COMPLETE</p>
-      <h2 id="lockTitle" style="margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:48px;line-height:1;color:var(--rose)"></h2>
-      <button class="btn" type="button" id="continueBtn" style="margin-top:10px">Continue</button>
+    <div class="lock-text">
+      <p class="caps lock-caps">CEREMONY COMPLETE</p>
+      <h2 class="lock-title" id="lockTitle"></h2>
+      <button class="btn lock-continue" type="button" id="continueBtn">Continue</button>
+      <button class="link phone-only" type="button" data-go="deck">View the deck</button>
     </div>
   </section>
 
   <!-- FINALE / DECK VIEW -->
   <section class="screen" id="finale" aria-label="The whole deck" hidden>
-    <div style="position:absolute;top:80px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center">
-      <h2 id="finTitle" style="margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:48px;line-height:1.05;color:var(--rose)"></h2>
-      <p id="finSub" style="margin:0;font-size:15px;color:var(--ink-soft)"></p>
+    <div class="fin-head">
+      <h2 class="fin-title" id="finTitle"></h2>
+      <p class="fin-sub" id="finSub"></p>
     </div>
     <div class="couples" id="couples"></div>
     <div class="fans" id="fans"></div>
-    <div style="position:absolute;left:0;right:0;top:684px;display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div class="fin-under">
       <div class="strip" id="finStrip" role="status"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div class="fin-actions">
         <button class="btn" type="button" data-go="restart">Play again</button>
         <button class="link" type="button" id="finBack">Back</button>
       </div>
     </div>
   </section>
+
 </div></div>
 </body>
 </html>
