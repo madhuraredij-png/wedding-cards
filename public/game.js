@@ -107,7 +107,7 @@ function renderNiches() {
       <div class="sill-top"></div><div class="sill-front"></div>
       <p class="caps cer">${s.cer.toUpperCase()}</p></div>`;
   }).join('');
-  $('#progress').textContent = `${G.locked.length} OF 4 CEREMONIES`;
+  $('#progress').textContent = `${G.locked.length} of 4 ceremonies complete`;
 }
 function renderSpread(animate) {
   const n = G.spread.length, off = (6 - n) * 80;

@@ -37,6 +37,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 - Foil sheen appears only on a royal that is lifted (selected in the spread, or at the lock moment). Cards at rest never shine.
 - A completed pair leans together and overlaps inside its niche, which gains a marigold glow.
 - Lock moment: a large arch in that ceremony's colors, the couple overlapping with foil, a marigold-and-bougainvillea garland around the arch and a varmala across the cards, on a patterned plinth. "CEREMONY COMPLETE" over the ceremony name. For The Wedding the heading is "Just Married!". "Continue" returns to play; after the fourth pair it reads "See the whole deck". "Play again" sits in the header.
+- Play header: the title on the left and "View the deck" on the right. There is no visible ceremony counter; progress is announced to screen readers only.
 - Respect `prefers-reduced-motion`: no deal-in slide, static sheen.
 
 ## Visual design (Direction B)
@@ -56,7 +57,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 
 - Use it below about 700px wide. Same screens, flow and styling as desktop, with a thinner border (about 33px).
 - Intro: names, title (42px) and instruction at the top; a 270px arch with three card backs on a plinth; Deal and View the deck stacked below; small mirrored folk sprigs in the bottom corners.
-- Play: header with the title and "1 OF 4". Niches in a 2×2 grid (132×104 arches, 38×53 slots, 9.5px ceremony labels). The spread is two rows of three cards (84×118), each row on a gentle arc. The lifted card scales to 125%. The meaning strip may wrap to two lines on phone. Deal again (44px tall) sits under the strip. No corner sprigs on this screen.
+- Play: header with the title and "View the deck" (no ceremony counter; it was removed on desktop too and is kept only as screen-reader text). Niches in a 2×2 grid (132×104 arches, 38×53 slots, 9.5px ceremony labels). The spread is two rows of three cards (84×118), each row on a gentle arc. The lifted card scales to 125%. The meaning strip may wrap to two lines on phone. Deal again (44px tall) sits under the strip. No corner sprigs on this screen.
 - Lock moment: a 300px arch in the ceremony's colors with the couple at 104×146, garland and varmala, plinth, "CEREMONY COMPLETE", the ceremony heading at 40px ("Just Married!" for The Wedding), Continue, and View the deck. Play again in the header.
 - Finale: a scrolling page. Title and subtitle, the four couples in a 2×2 grid, then the four suits as stacked fans of 11 cards (50×70, overlapping by 25px), the meaning strip, Play again and Back to start.
 
