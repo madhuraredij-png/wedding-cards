@@ -158,9 +158,10 @@ function renderNiches() {
     const slot = r => {
       const filled = p[r], c = BY_ID[r + s.k];
       const glow = !filled && G.selected && G.selected.rank === r;
-      return `<button type="button" class="slot ${r.toLowerCase()}${filled ? ' filled' : ''}${glow ? ' glow' : ''}" data-suit="${s.k}" data-rank="${r}" aria-label="${filled ? c.full + ', placed' : (r === 'K' ? 'King' : 'Queen') + ' slot for ' + s.cer}">${filled ? (c.img ? `<img src="cards/${c.img}" alt="">` : face(c)) : r}</button>`;
+      const label = `${s.cer}, ${r === 'K' ? 'king' : 'queen'} slot, ${filled ? c.full + ' placed' : 'empty'}`;
+      return `<button type="button" class="slot ${r.toLowerCase()}${filled ? ' filled' : ''}${glow ? ' glow' : ''}" data-suit="${s.k}" data-rank="${r}" aria-label="${label}">${filled ? (c.img ? `<img src="cards/${c.img}" alt="">` : face(c)) : r}</button>`;
     };
-    return `<div class="niche${locked ? ' locked' : ''}" data-suit="${s.k}">
+    return `<div class="niche${locked ? ' locked' : ''}" data-suit="${s.k}" role="group" aria-label="${s.cer}${locked ? ', complete' : ''}">
       <div class="n-rim"><div class="n-rim2" style="background:${s.rim}"><div class="n-recess" style="background:radial-gradient(ellipse at 50% 90%, ${s.recess[0]}, ${s.recess[1]} 75%);box-shadow:inset 0 18px 26px rgba(${s.sh},.45),inset 8px 0 14px rgba(${s.sh},.2),inset -8px 0 14px rgba(${s.sh},.2)">${slot('K')}${slot('Q')}</div></div></div>
       <div class="sill-top"></div><div class="sill-front"></div>
       <p class="caps cer">${s.cer.toUpperCase()}</p></div>`;
@@ -173,18 +174,38 @@ function renderSpread(animate) {
     const idx = Math.min(5, i + Math.floor((6 - n) / 2));
     const p = phone ? phoneSpot(i, n) : { left: LEFTS[i] + off, top: TOPS[idx], rot: ROTS[idx] };
     return `<div class="spot${animate ? ' deal' : ''}" data-id="${c.id}" style="--i:${i};left:${p.left}px;top:${p.top}px;transform:rotate(${p.rot}deg)">
-      <button type="button" class="card${c.royal ? ' royal' : ''}" data-id="${c.id}" aria-label="${c.full}${c.royal ? ', royal card' : ''}">${face(c)}${c.royal ? '<div class="foil"></div>' : ''}</button>
+      <button type="button" class="card${c.royal ? ' royal' : ''}" data-id="${c.id}" aria-label="${cardLabel(c)}"${c.royal ? ` aria-pressed="${G.selected === c}"` : ''}>${face(c)}${c.royal ? '<div class="foil"></div>' : ''}</button>
       <p class="lbl">${c.label}</p></div>`;
   }).join('');
   refreshLift();
+}
+// Screen-reader name for a card: what it is, what it shows, and whether it can be placed.
+function cardLabel(c) {
+  const plain = t => t.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+  const label = plain(c.label), parts = [c.full];
+  if (label !== c.full) parts.push(label);
+  if (c.meaning !== TBD) parts.push(plain(c.meaning));
+  return esc(parts.join('. ') + (c.royal ? '. Royal card' : ''));
 }
 function focused() { return G.selected || G.hover || G.pinned; }
 function refreshLift() {
   const f = focused();
   $$('#spread .spot').forEach(el => el.classList.toggle('lifted', !!f && el.dataset.id === f.id));
+  $$('#spread .card.royal').forEach(b => b.setAttribute('aria-pressed', String(!!G.selected && G.selected.id === b.dataset.id)));
   $('#strip').innerHTML = stripHTML(f);
 }
 
+// Keyboard play. Focus is only moved for keyboard users, so mouse and touch play look exactly as before.
+let keyboard = false;
+addEventListener('keydown', e => { if (['Tab', 'Enter', ' ', 'Escape'].includes(e.key)) keyboard = true; }, true);
+addEventListener('pointerdown', () => { keyboard = false; }, true);
+function say(msg) { const a = $('#announce'); a.textContent = ''; setTimeout(() => { a.textContent = msg; }, 30); }
+function cardBtn(c) { return c && $('#spread').querySelector(`.card[data-id="${c.id}"]`); }
+function focusSpread() {
+  // After placing a card or leaving the lock moment: the next royal to place, else Deal again.
+  const next = G.spread.find(c => c.royal);
+  (cardBtn(next) || $('#dealBtn')).focus();
+}
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 
@@ -206,7 +227,10 @@ function choose(c) {
   if (c.royal) {
     G.selected = G.selected === c ? null : c;
     G.pinned = null;
-    if (G.selected) toast('Now tap the right ceremony’s ' + (c.rank === 'K' ? 'K' : 'Q') + ' slot, or drag the card there.');
+    if (G.selected) {
+      const r = c.rank === 'K' ? 'K' : 'Q';
+      toast(keyboard ? `Picked up. Tab to the right ceremony’s ${r} slot and press Enter. Escape puts it back.` : 'Now tap the right ceremony’s ' + r + ' slot, or drag the card there.');
+    } else if (keyboard) say(c.full + ' put back.');
   } else {
     G.selected = null;
     G.pinned = G.pinned === c ? null : c;
@@ -226,12 +250,14 @@ function tryPlace(c, suit, rank) {
   G.placed[suit][rank] = true;
   G.spread = G.spread.filter(x => x !== c);
   G.selected = null; G.hover = null; G.pinned = null;
+  const wasKeyboard = keyboard;
   renderNiches(); renderSpread(false);
+  say(`${c.full} placed at ${SUIT[suit].cer}.`);
   if (G.placed[suit].K && G.placed[suit].Q) {
     G.locked.push(suit);
     renderNiches();
     setTimeout(() => openLock(suit), 650);
-  }
+  } else if (wasKeyboard) focusSpread();
 }
 
 spreadEl.addEventListener('click', e => {
@@ -333,7 +359,7 @@ function leaveLock() {
   if (!G.spread.some(c => c.royal)) { deal(); renderNiches(); renderSpread(true); }
   return false;
 }
-$('#continueBtn').addEventListener('click', () => { if (leaveLock()) openFinale(true); });
+$('#continueBtn').addEventListener('click', () => { if (leaveLock()) openFinale(true); else if (keyboard) focusSpread(); });
 
 // ---------- Finale / deck view ----------
 let finFrom = 'intro', finWin = false, finPinned = null;
@@ -347,12 +373,12 @@ function openFinale(win) {
   $('#finBack').textContent = win ? 'Back to start' : 'Back';
   $('#couples').innerHTML = SUITS.map(s => {
     const q = BY_ID['Q' + s.k], k = BY_ID['K' + s.k];
-    return `<div class="couple"><div class="pair"><button type="button" class="mini" data-id="${q.id}">${face(q)}</button><button type="button" class="mini" data-id="${k.id}">${face(k)}</button></div><span class="name">${s.cer}</span></div>`;
+    return `<div class="couple"><div class="pair"><button type="button" class="mini" data-id="${q.id}" aria-label="${cardLabel(q)}">${face(q)}</button><button type="button" class="mini" data-id="${k.id}" aria-label="${cardLabel(k)}">${face(k)}</button></div><span class="name">${s.cer}</span></div>`;
   }).join('');
   $('#fans').innerHTML = SUITS.map(s => {
     const cards = CARDS.filter(c => c.suit === s.k && !c.royal);
     return `<div class="fan-row"><span class="caps fan-label">${s.sym}&nbsp; ${s.name.toUpperCase()}</span><div class="fan">${cards.map((c, i) =>
-      `<button type="button" class="mini${c.img ? '' : ' ph-mini'}" data-id="${c.id}" style="transform:rotate(${((i - 5) * 1.6).toFixed(1)}deg)">${face(c)}</button>`).join('')}</div></div>`;
+      `<button type="button" class="mini${c.img ? '' : ' ph-mini'}" data-id="${c.id}" aria-label="${cardLabel(c)}" style="transform:rotate(${((i - 5) * 1.6).toFixed(1)}deg)">${face(c)}</button>`).join('')}</div></div>`;
   }).join('');
   $('#finStrip').innerHTML = stripHTML(finPinned && BY_ID[finPinned]);
   if (!$('#lock').hidden) $('#lock').hidden = true;
@@ -382,7 +408,23 @@ document.addEventListener('click', e => {
   }
   if (g.dataset.go === 'restart') { $('#lock').hidden = true; start(); }
 });
-addEventListener('keydown', e => { if (e.key === 'Escape' && G && G.selected) { G.selected = null; renderNiches(); refreshLift(); } });
+addEventListener('keydown', e => {
+  if (!G || $('#play').hidden || !$('#lock').hidden) return;
+  if (e.key === 'Escape' && G.selected) {
+    const c = G.selected, onSlot = document.activeElement && document.activeElement.closest('.slot');
+    G.selected = null; renderNiches(); refreshLift();
+    if (onSlot) cardBtn(c)?.focus();
+    say(c.full + ' put back.');
+  }
+  // While a royal is picked up, Tab cycles between it and the slots of its rank.
+  if (e.key === 'Tab' && G.selected) {
+    const ring = [cardBtn(G.selected), ...$$('#niches .slot.glow')].filter(Boolean);
+    const i = ring.indexOf(document.activeElement);
+    if (i === -1 || ring.length < 2) return;
+    e.preventDefault();
+    ring[(i + (e.shiftKey ? -1 : 1) + ring.length) % ring.length].focus();
+  }
+});
 
 window.__game = { get state() { return G; }, newGame, deal, tryPlace, get BY_ID() { return BY_ID; }, get CARDS() { return CARDS; }, ready: cardsReady };
 })();

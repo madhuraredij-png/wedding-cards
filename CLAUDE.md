@@ -38,6 +38,8 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 - A completed pair leans together and overlaps inside its niche, which gains a marigold glow.
 - Lock moment: a large arch in that ceremony's colors, the couple overlapping with foil, a marigold-and-bougainvillea garland around the arch and a varmala across the cards, on a patterned plinth. "CEREMONY COMPLETE" over the ceremony name. For The Wedding the heading is "Just Married!". "Continue" returns to play; after the fourth pair it reads "See the whole deck". "Play again" sits in the header.
 - Play header: the title on the left and "View the deck" on the right. There is no visible ceremony counter; progress is announced to screen readers only.
+- Keyboard: Tab to a royal, Enter picks it up; Tab and Shift+Tab then cycle between that card and the empty slots of its rank; Enter places; Escape puts it back. After placing, focus moves to the next royal (or Deal again); after Continue, back to the spread. Focus is only moved for keyboard users.
+- Screen readers: every card button is named by card, label and meaning (royals add "Royal card" and `aria-pressed` while picked up); slots read "<ceremony>, king slot, empty"; placements and progress are announced through hidden status lines.
 - Respect `prefers-reduced-motion`: no deal-in slide, static sheen.
 
 ## Visual design (Direction B)
@@ -82,5 +84,4 @@ Gaps to fill:
 
 ## Next steps
 
-- Keyboard play end to end (Tab to a royal, Enter to select, Tab to a slot, Enter to place) and screen-reader labels on every card.
 - Keep everything a static site so it can be hosted on Madhura's portfolio.

@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div id="fit"><div id="stage" aria-live="polite">
+<div id="fit"><div id="stage">
   <img class="frame" src="border.svg" alt="">
 
   <!-- INTRO -->
@@ -53,7 +53,7 @@
     </header>
     <section class="niches" id="niches" aria-label="Ceremony niches"></section>
     <div class="floor" aria-hidden="true"></div>
-    <section class="spread" aria-label="Your spread"><div class="spread-tilt" id="spread"></div></section>
+    <section class="spread" aria-label="Your spread" aria-describedby="howto"><div class="spread-tilt" id="spread"></div></section>
     <div aria-hidden="true">
       <div class="corner corner-l"></div>
       <div class="corner corner-r"></div>
@@ -64,6 +64,8 @@
     </div>
     <div class="toast" id="toast" role="status"></div>
     <p class="sr-only" id="progress" role="status">0 of 4 ceremonies complete</p>
+    <p class="sr-only" id="howto">Pick up a king or queen with Enter, then Tab to its ceremony's slot and press Enter to place it. Escape puts the card back.</p>
+    <p class="sr-only" id="announce" role="status"></p>
   </section>
 
   <!-- LOCK -->
