@@ -2,7 +2,7 @@
 
 A one-minute, single-player card game that presents Madhura Redij's illustrated wedding deck for Ketaki and Prasanna as a digital design piece. The player deals short spreads of cards, reads what each card depicts, and places each king and queen at their ceremony. When all four couples are placed, the full 52-card deck is revealed.
 
-`public/index.html` is a working prototype: one self-contained page with inline CSS and JS, no build step. Treat it as the source of truth for look and behavior. The full PRD lives in Claude Docs ("Wedding Deck Game — PRD & Strategy"); the decisions that matter are summarized below.
+The site is `public/index.html`, `public/styles.css`, `public/game.js` and `public/cards.json`: plain static files, no framework, no build step. It was split out of a single-file prototype (first commit) and is the source of truth for look and behavior. The full PRD lives in Claude Docs ("Wedding Deck Game — PRD & Strategy"); the decisions that matter are summarized below.
 
 ## Run it
 
@@ -62,7 +62,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 
 ## Content
 
-Card data lives in the `DATA` object in `index.html`. Card images are in `public/cards/` named `<rank><suit>.png` (lowercase, for example `5h.png`, `kd.png`).
+Card data lives in `public/cards.json` (labels, meanings, image file names, alt text; `*asterisks*` for italics). See README.md for how to edit it. Card images are in `public/cards/` named `<rank><suit>.png` (lowercase, for example `5h.png`, `kd.png`).
 
 Confirmed meanings (Madhura's own captions):
 - 5♥ *Saat phere*: the seven sacred rounds around the holy fire
@@ -79,7 +79,6 @@ Gaps to fill:
 
 ## Next steps
 
-- Move card data into `public/cards.json` and load it, so content edits don't touch code.
 - Build the phone layout (below). Today the 1440×900 stage just scales down.
 - Keyboard play end to end (Tab to a royal, Enter to select, Tab to a slot, Enter to place) and screen-reader labels on every card.
 - Keep everything a static site so it can be hosted on Madhura's portfolio.

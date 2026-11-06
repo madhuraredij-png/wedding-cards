@@ -55,6 +55,10 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .slot.glow{border:2px solid #EEF7E2;background:rgba(110,145,80,.22);box-shadow:0 0 0 4px rgba(120,170,80,.55),0 0 22px rgba(150,205,110,.9)}
 .slot.filled{border:0;overflow:hidden;box-shadow:0 2px 2px rgba(40,30,20,.2),0 10px 14px -4px rgba(40,30,20,.45)}
 .slot.filled img{display:block;width:100%;height:100%}
+.slot .ph .pip{font-size:22px}
+.slot .ph .art{inset:8px 6px}
+.slot .ph .note{display:none}
+.slot .ph .ix{font-size:9px}
 .niche.locked .slot.k{transform:rotate(6deg) translateX(-14px);z-index:2}
 .niche.locked .slot.q{transform:rotate(-7deg) translateX(14px);z-index:1}
 .niche.locked .n-recess{flex-direction:row-reverse}

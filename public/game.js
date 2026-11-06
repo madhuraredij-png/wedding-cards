@@ -10,33 +10,26 @@ const SUIT = Object.fromEntries(SUITS.map(s => [s.k, s]));
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const RANK_NAME = {A:'Ace',J:'Jack',Q:'Queen',K:'King'};
 const TBD = 'Meaning to come.';
-const DATA = {
-  '2D':{img:'2d.png', label:'Haldi', alt:'Two of Diamonds: a bowl of haldi'},
-  '4D':{img:'4d.png', label:'Henna', alt:'Four of Diamonds: henna on the bride’s hands', meaning:'The ceremony of application of henna to the bride’s hands'},
-  '9D':{img:'9d.png', label:'Marathi lettering', alt:'Nine of Diamonds: Marathi lettering'},
-  '2C':{img:'2c.png', label:'Betel leaves', alt:'Two of Clubs: betel leaves', meaning:'Betel leaves used in various <i>poojas</i> during the ceremony'},
-  '6C':{img:'6c.png', label:'Kalash', alt:'Six of Clubs: a kalash under hanging bells'},
-  '3H':{img:'3h.png', label:'The knot', alt:'Three of Hearts: two tied cloths'},
-  '5H':{img:'5h.png', label:'<i>Saat phere</i>', alt:'Five of Hearts: seven rings for the seven rounds', meaning:'<i>Saat phere</i>: the seven sacred rounds around the holy fire'},
-  '6H':{img:'6h.png', label:'Mangalsutra', alt:'Six of Hearts: the mangalsutra', meaning:'The <i>mangalsutra</i> is filled with <i>haldi</i> and <i>kumkum</i>'},
-  '7H':{img:'7h.png', label:'Garlands', alt:'Seven of Hearts: two flower garlands'},
-  '2S':{img:'2s.png', label:'The groom’s shoes', alt:'Two of Spades: the groom’s shoes', meaning:'The bridesmaids hold the groom’s shoes for ransom'},
-  '3S':{img:'3s.png', label:'Mr. &amp; Mrs. chairs', alt:'Three of Spades: Mr. and Mrs. chairs'},
-  '5S':{img:'5s.png', label:'Wedding meal', alt:'Five of Spades: a meal served on a banana leaf'},
-  '8S':{img:'8s.png', label:'The pandemic wedding', alt:'Eight of Spades: a masked guest', meaning:'A masked woman dressed up at the pandemic wedding'}
-};
-['D','C','H','S'].forEach(s => { DATA['K'+s] = {img:'k'+s.toLowerCase()+'.png'}; DATA['Q'+s] = {img:'q'+s.toLowerCase()+'.png'}; });
-
-const CARDS = [];
-SUITS.forEach(s => RANKS.forEach(r => {
-  const id = r + s.k, d = DATA[id] || {}, royal = r === 'K' || r === 'Q';
-  const full = (RANK_NAME[r] || r) + ' of ' + s.name;
-  let meaning = d.meaning || TBD;
-  if (royal) meaning = (r === 'K' ? 'The groom’s' : 'The bride’s') + ' outfit for ' + s.cer;
-  CARDS.push({id, rank:r, suit:s.k, royal, img:d.img || null, label:d.label || full, full,
-    alt:d.alt || (royal ? full + ': ' + meaning.toLowerCase().replace(/^the /,'the ') : full), meaning});
-}));
-const BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
+// Card content lives in cards.json so it can be edited without touching code.
+const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const rich = t => esc(t).replace(/\*([^*]+)\*/g, '<i>$1</i>');
+let CARDS = [], BY_ID = {};
+function buildCards(json) {
+  const DATA = Object.fromEntries((json.cards || []).map(d => [d.card, d]));
+  CARDS = [];
+  SUITS.forEach(s => RANKS.forEach(r => {
+    const id = r + s.k, d = DATA[id] || {}, royal = r === 'K' || r === 'Q';
+    const full = (RANK_NAME[r] || r) + ' of ' + s.name;
+    const meaning = d.meaning ? rich(d.meaning) : TBD;
+    CARDS.push({id, rank:r, suit:s.k, royal, img:d.image ? esc(d.image) : null, label:d.label ? rich(d.label) : full, full,
+      alt:d.alt ? esc(d.alt) : full, meaning});
+  }));
+  BY_ID = Object.fromEntries(CARDS.map(c => [c.id, c]));
+}
+const cardsReady = fetch('cards.json')
+  .then(r => { if (!r.ok) throw new Error('cards.json: HTTP ' + r.status); return r.json(); })
+  .then(buildCards);
+cardsReady.catch(err => console.error('Could not load card data.', err));
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -107,7 +100,7 @@ function renderNiches() {
     const slot = r => {
       const filled = p[r], c = BY_ID[r + s.k];
       const glow = !filled && G.selected && G.selected.rank === r;
-      return `<button type="button" class="slot ${r.toLowerCase()}${filled ? ' filled' : ''}${glow ? ' glow' : ''}" data-suit="${s.k}" data-rank="${r}" aria-label="${filled ? c.full + ', placed' : (r === 'K' ? 'King' : 'Queen') + ' slot for ' + s.cer}">${filled ? `<img src="cards/${c.img}" alt="">` : r}</button>`;
+      return `<button type="button" class="slot ${r.toLowerCase()}${filled ? ' filled' : ''}${glow ? ' glow' : ''}" data-suit="${s.k}" data-rank="${r}" aria-label="${filled ? c.full + ', placed' : (r === 'K' ? 'King' : 'Queen') + ' slot for ' + s.cer}">${filled ? (c.img ? `<img src="cards/${c.img}" alt="">` : face(c)) : r}</button>`;
     };
     return `<div class="niche${locked ? ' locked' : ''}" data-suit="${s.k}">
       <div class="n-rim"><div class="n-rim2" style="background:${s.rim}"><div class="n-recess" style="background:radial-gradient(ellipse at 50% 90%, ${s.recess[0]}, ${s.recess[1]} 75%);box-shadow:inset 0 18px 26px rgba(${s.sh},.45),inset 8px 0 14px rgba(${s.sh},.2),inset -8px 0 14px rgba(${s.sh},.2)">${slot('K')}${slot('Q')}</div></div></div>
@@ -222,14 +215,26 @@ addEventListener('pointerup', e => {
 });
 
 // ---------- Lock moment ----------
+function lockFace(sel, c) {
+  // Swap the lock card's face in place: the illustration, or the "Art coming" face when there is none.
+  const el = $(sel), alt = c.full + ': ' + c.meaning.replace(/<[^>]+>/g, '');
+  if (c.img) {
+    const img = document.createElement('img');
+    img.id = el.id; img.src = 'cards/' + c.img; img.alt = alt;
+    el.replaceWith(img);
+  } else {
+    const tmp = document.createElement('div'); tmp.innerHTML = face(c);
+    const ph = tmp.firstElementChild; ph.id = el.id; ph.setAttribute('aria-label', alt);
+    el.replaceWith(ph);
+  }
+}
 function openLock(suit) {
   const s = SUIT[suit];
   $('#lockRim2').style.background = s.rim;
   $('#lockRecess').style.background = `radial-gradient(ellipse at 50% 80%, ${s.recess[0]}, ${s.recess[1]} 72%)`;
   $('#lockRecess').style.boxShadow = `inset 0 28px 44px rgba(${s.sh},.45),inset 14px 0 24px rgba(${s.sh},.2),inset -14px 0 24px rgba(${s.sh},.2)`;
   const K = BY_ID['K' + suit], Q = BY_ID['Q' + suit];
-  $('#lockK').src = 'cards/' + K.img; $('#lockK').alt = K.full + ': ' + K.meaning;
-  $('#lockQ').src = 'cards/' + Q.img; $('#lockQ').alt = Q.full + ': ' + Q.meaning;
+  lockFace('#lockK', K); lockFace('#lockQ', Q);
   $('#lockTitle').textContent = suit === 'H' ? 'Just Married!' : s.cer;
   const last = G.locked.length === 4;
   $('#continueBtn').textContent = last ? 'See the whole deck' : 'Continue';
@@ -289,14 +294,14 @@ fin.addEventListener('click', e => { const m = e.target.closest('.mini'); if (m)
 $('#finBack').addEventListener('click', () => { show(finFrom === 'play' && G && G.locked.length < 4 ? 'play' : 'intro'); });
 
 // ---------- Navigation ----------
-function start() { newGame(); show('play'); renderNiches(); renderSpread(true); }
+async function start() { await cardsReady; newGame(); show('play'); renderNiches(); renderSpread(true); }
 $('#startBtn').addEventListener('click', start);
 document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]'); if (!g) return;
-  if (g.dataset.go === 'deck') openFinale(false);
+  if (g.dataset.go === 'deck') cardsReady.then(() => openFinale(false));
   if (g.dataset.go === 'restart') { $('#lock').hidden = true; start(); }
 });
 addEventListener('keydown', e => { if (e.key === 'Escape' && G && G.selected) { G.selected = null; renderNiches(); refreshLift(); } });
 
-window.__game = { get state() { return G; }, newGame, deal, tryPlace, BY_ID, CARDS };
+window.__game = { get state() { return G; }, newGame, deal, tryPlace, get BY_ID() { return BY_ID; }, get CARDS() { return CARDS; }, ready: cardsReady };
 })();
