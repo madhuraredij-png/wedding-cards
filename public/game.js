@@ -219,7 +219,8 @@ function show(id) {
 // ---------- Play interactions ----------
 const spreadEl = $('#spread');
 spreadEl.addEventListener('pointerover', e => { const s = e.target.closest('.spot'); if (s && e.pointerType === 'mouse') { G.hover = BY_ID[s.dataset.id]; refreshLift(); } });
-spreadEl.addEventListener('pointerleave', () => { G.hover = null; refreshLift(); });
+// The tilted container ignores the pointer (see styles.css), so listen on its section, which covers the same area.
+spreadEl.parentElement.addEventListener('pointerleave', () => { G.hover = null; refreshLift(); });
 spreadEl.addEventListener('focusin', e => { const b = e.target.closest('.card'); if (b) { G.hover = BY_ID[b.dataset.id]; refreshLift(); } });
 spreadEl.addEventListener('focusout', () => { G.hover = null; refreshLift(); });
 
