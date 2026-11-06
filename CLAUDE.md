@@ -8,6 +8,10 @@ The site is `public/index.html`, `public/styles.css`, `public/game.js` and `publ
 
 Serve `public/` with any static server, for example `npx serve public` or `python3 -m http.server -d public`. Open `index.html`. Images load by relative path.
 
+## Test it
+
+`npm test` (Playwright, `tests/game.spec.js`) plays full games by pointer and keyboard at 1440×900 and 390×844, checks screen-reader names and `cards.json`, and fails on console errors. `@playwright/test` is pinned to an exact version; run `npx playwright install chromium` once on a new machine.
+
 ## Deck and ceremonies
 
 - 52 cards, 4 suits. Each suit's king and queen show the couple's real outfits for one ceremony:

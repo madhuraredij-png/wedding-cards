@@ -5,10 +5,10 @@ A one-minute card game presenting Madhura Redij's illustrated wedding deck for K
 ## Run it locally
 
 ```bash
-python3 -m http.server -d public 8000
+npm start
 ```
 
-Then open http://localhost:8000. The page must be served, not opened as a file, because it loads `cards.json`.
+Then open http://localhost:4173. Any static server works too, for example `python3 -m http.server -d public 8000`. The page must be served, not opened as a file, because it loads `cards.json`.
 
 ## Adding card illustrations and text
 
@@ -35,3 +35,28 @@ Wrap words in `*asterisks*` for italics, for example `*Saat phere*`. Type `&`, a
 1. Export the card at about 750×1050 and name it `<rank><suit>.png` in lowercase, for example `7c.png`, `10h.png`, `jd.png`.
 2. Put it in `public/cards/`. Replacing an existing file with the same name just works.
 3. In `cards.json`, set that card's `"image": "7c.png"` and write an `alt`.
+
+### Check your edits
+
+`npm test` also checks `cards.json`: valid JSON, all 52 cards present, every field filled in as text, and every `image` matching a real file. A missing comma or a misspelled file name fails with the card named.
+
+## Tests
+
+The tests play the game to the finale with the mouse and with the keyboard, at desktop (1440×900) and phone (390×844) sizes, check that every card and slot has a screen-reader name, and fail on any console error or failed request.
+
+First time only:
+
+```bash
+npm install
+```
+
+```bash
+npx playwright install chromium
+```
+
+Then:
+
+```bash
+npm test
+```
+

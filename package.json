@@ -1,0 +1,12 @@
+{
+  "name": "to-the-wedding",
+  "private": true,
+  "description": "A one-minute card game presenting Madhura Redij's illustrated wedding deck. Static site in public/.",
+  "scripts": {
+    "start": "node tests/serve.js",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
