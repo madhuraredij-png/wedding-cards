@@ -1,4 +1,4 @@
-/* Layout: one 1440x900 stage scaled to fit the window. Arched ceremony niches across the top, the dealt spread below, a block-print frame around everything. */
+/* Layout: one 1440x900 stage scaled to fit the window, inside a block-print frame that game.js draws around the whole window. Arched ceremony niches across the top, the dealt spread below. */
 :root{
   --ground:#F4ECDD; --paper:#FFFBF3; --ink:#3B2B27; --ink-soft:#5E4840; --suit-red:#B23A3A;
   --rose:#A93B63; --rose-deep:#7E2648; --bloom:#D9478A; --marigold:#E7A93C; --sage:#6F8F4E; --leaf:#6E9150; --stem:#557A3A;
@@ -7,10 +7,14 @@
   color-scheme: light;
 }
 html,body{height:100%}
-body{background:var(--ground);color:var(--ink);font-family:var(--body);overflow:hidden;padding-block:0;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+html{background:var(--ground)}
+[hidden]{display:none !important}
+body{margin:0;padding:0;background:var(--ground);color:var(--ink);font-family:var(--body);overflow:hidden}
 #fit{position:relative;width:100%;height:100%;overflow:hidden}
 #stage{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;background:var(--ground);overflow:hidden;user-select:none;-webkit-user-select:none}
-.frame{position:absolute;inset:0;width:1440px;height:900px;pointer-events:none;z-index:40}
+/* The frame is drawn by game.js around the whole window (or the whole scrolling page on phone). */
+.frame-view{position:absolute;left:0;top:0;z-index:40;pointer-events:none}
+.frame-view svg{display:block}
 .screen{position:absolute;inset:0}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 a,.link{color:var(--rose);font-size:14px;font-weight:500;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
@@ -118,15 +122,8 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .toast{position:absolute;left:50%;top:356px;translate:-50% 0;z-index:30;background:var(--ink);color:#FBF3E6;font-size:14px;padding:9px 18px;border-radius:20px;box-shadow:0 10px 20px rgba(40,20,10,.25);opacity:0;transition:opacity .25s;pointer-events:none}
 .toast.show{opacity:1}
 
-/* Lock */
-#lock{background:var(--ground);z-index:20}
-#lock .big{position:absolute;width:160px;height:224px;border-radius:10px;overflow:hidden;box-shadow:0 3px 3px rgba(40,30,20,.2),0 30px 40px -10px rgba(40,30,20,.55)}
-#lock .big img{display:block;width:100%;height:100%}
-#lock .big .foil{opacity:1;animation:sheen 2.6s ease-in-out infinite}
 .bead{position:absolute;width:22px;height:22px;border-radius:50%;background:repeating-radial-gradient(circle,#F2A23A 0 3px,#E0742A 3px 6px,#C9462C 6px 8px);box-shadow:0 3px 4px rgba(120,50,10,.35),inset 0 -2px 3px rgba(110,30,10,.35)}
 .br{position:absolute;width:18px;height:18px;border-radius:2px 12px 2px 12px;background:var(--bloom);box-shadow:inset -2px -2px 0 rgba(120,20,60,.25),0 3px 4px rgba(120,20,60,.25)}
-#lock.show .lock-arch{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
-@keyframes rise{from{opacity:0;translate:0 30px}}
 
 /* Finale */
 .couples{position:absolute;top:184px;left:0;right:0;display:flex;justify-content:center;gap:64px}
@@ -150,8 +147,6 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .couple .mini.on{transform:translateY(-10px) scale(1.12) !important;z-index:5}
 
 @media (prefers-reduced-motion: reduce){
-  .spot.deal,#lock.show .lock-arch{animation:none}
-  .lifted .foil,#lock .big .foil{animation:none;background-position:40% 0}
   .card,.slot,.mini{transition:none}
 }
 
@@ -175,37 +170,46 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .intro-actions{position:absolute;left:0;right:0;bottom:70px;display:flex;flex-direction:column;align-items:center;gap:14px}
 .corner-l{left:66px}
 .corner-r{left:1164px;transform:scaleX(-1)}
-.lock-rim{position:absolute;left:470px;top:134px;width:500px;height:470px;box-shadow:0 2px 0 rgba(255,255,255,.55) inset,0 0 0 6px rgba(231,169,60,.25),0 0 60px rgba(231,169,60,.45),0 40px 60px -24px rgba(90,40,30,.45)}
-.lock-cards{position:absolute;inset:0;perspective:1000px}
-.big-k{left:98px;top:140px;transform:rotateY(14deg) rotateZ(-5deg)}
-.big-q{left:176px;top:140px;transform:rotateY(-14deg) rotateZ(5deg);z-index:2}
-.lock-plinth{position:absolute;left:0;right:0;top:604px;display:flex;flex-direction:column;align-items:center}
-.lock-step-top{width:540px}
-.lock-step-front{width:580px}
-.lock-text{position:absolute;left:0;right:0;top:684px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
-.lock-caps{margin:0;letter-spacing:.32em;color:#8A5A12}
-.lock-title{margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:48px;line-height:1;color:var(--rose)}
-.lock-continue{margin-top:10px}
 .fin-head{position:absolute;top:80px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
 .fin-title{margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:48px;line-height:1.05;color:var(--rose)}
 .fin-sub{margin:0;font-size:15px;color:var(--ink-soft)}
 .fin-under{position:absolute;left:0;right:0;top:684px;display:flex;flex-direction:column;align-items:center;gap:18px}
 .fin-actions{display:flex;flex-direction:column;align-items:center;gap:12px}
 .fan-label{font-size:12px}
-.phone-only,.intro-corner,.frame-phone{display:none}
+.intro-corner{display:none}
+
+/* Ceremony complete, in place: when a pair locks, a foil shimmer sweeps the niche and both cards,
+   the marigold glow pulses, petals drift from the arch, and the label briefly reads
+   "Ceremony complete" ("Just Married!" for The Wedding). Then play simply continues. */
+.niche{position:relative}
+.n-rim{position:relative}
+.n-rim > .shine{border-radius:inherit}
+.niche.celebrate .shine,.niche.celebrate .slot .foil{opacity:1;animation:sheen 1.3s ease-in-out 2}
+.niche.celebrate{animation:nichePop .7s cubic-bezier(.2,.8,.2,1)}
+.niche.celebrate .n-rim{animation:glowPulse 1.3s ease-in-out 2}
+@keyframes nichePop{40%{transform:translateY(-6px) scale(1.03)}}
+@keyframes glowPulse{50%{box-shadow:0 2px 0 rgba(255,255,255,.55) inset,0 0 0 6px rgba(231,169,60,.45),0 0 48px rgba(231,169,60,.85),0 22px 30px -18px rgba(90,40,30,.45)}}
+.cer-wrap{position:relative;display:flex;justify-content:center}
+.cheer{position:absolute;left:-20px;right:-20px;top:4px;margin:0;text-align:center;white-space:nowrap;font-family:var(--display);font-style:italic;font-weight:600;font-size:22px;line-height:1;color:var(--rose);opacity:0;pointer-events:none}
+.niche.celebrate .cheer{animation:cheer 2.8s ease-out}
+.niche.celebrate .cer{animation:cheerOut 2.8s ease-out}
+@keyframes cheer{0%{opacity:0;translate:0 6px}12%,82%{opacity:1;translate:0 0}100%{opacity:0}}
+@keyframes cheerOut{0%,100%{opacity:1}12%,82%{opacity:0}}
+.petal{position:absolute;left:50%;top:22px;z-index:6;pointer-events:none;animation:petal 1.6s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes petal{0%{opacity:0;transform:translate(-50%,0) rotate(0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),var(--y)) rotate(var(--r)) scale(1)}}
+@media (prefers-reduced-motion: reduce){
+  .niche.celebrate,.niche.celebrate .n-rim{animation:none}
+  .niche.celebrate .shine,.niche.celebrate .slot .foil{animation:none;background-position:40% 0}
+  .petal{display:none}
+}
 
 /* ---------- Phone layout (below 700px wide), mockups P1–P4 ----------
    A 390x844 stage (390x1234 for the scrolling finale), scaled to the screen by game.js.
    Everything phone-specific lives in this block, so desktop is untouched. */
 @media (max-width: 699px){
-  body{margin:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:border-box}
   #stage{width:390px;height:844px}
   #stage.tall{height:1234px}
   #fit:has(#stage.tall){overflow-y:auto;-webkit-overflow-scrolling:touch}
-  .frame{display:none}
-  .frame-phone{display:block;position:absolute;inset:0;z-index:40;pointer-events:none}
-  .frame-phone svg{display:block}
-  .phone-only{display:inline-block}
   .btn{height:50px;padding:0 30px;border-radius:25px;font-size:13.5px}
   .link{font-size:13px}
   header.bar{top:46px;left:44px;right:43px}
@@ -247,6 +251,7 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
   .sill-top{width:142px;height:5px}
   .sill-front{width:150px;height:10px;background:repeating-linear-gradient(90deg,var(--rose) 0 7px,var(--marigold) 7px 9px)}
   .cer{margin-top:6px;font-size:9.5px;letter-spacing:.16em;white-space:nowrap}
+  .cheer{font-size:15px;top:3px}
   .slot{width:38px;height:53px;border-radius:3px;font-size:14px}
   .slot.glow{box-shadow:0 0 0 3px rgba(120,170,80,.55),0 0 14px rgba(150,205,110,.9)}
   .niche.locked .slot.k{transform:rotate(6deg) translateX(-9px)}
@@ -273,21 +278,8 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
   #dealBtn{height:44px;border-radius:22px}
   .toast{top:40px;max-width:300px;width:max-content;text-align:center;font-size:12.5px;padding:8px 14px}
 
-  /* Lock moment (P3) */
-  .lock-rim{left:45px;top:130px;width:300px;height:312px;padding:10px 10px 0;box-shadow:0 2px 0 rgba(255,255,255,.55) inset,0 0 0 4px rgba(231,169,60,.25),0 0 40px rgba(231,169,60,.45),0 26px 40px -18px rgba(90,40,30,.45)}
-  .lock-rim .rim2{padding:10px 10px 0;outline-width:2px;outline-offset:-5px}
-  #lock .big{width:104px;height:146px;border-radius:7px}
-  .big-k{left:54px;top:114px}
-  .big-q{left:104px;top:114px}
   .bead{width:14px;height:14px;background:repeating-radial-gradient(circle,#F2A23A 0 2px,#E0742A 2px 4px,#C9462C 4px 5px)}
   .br{width:12px;height:12px;border-radius:2px 8px 2px 8px}
-  .lock-plinth{top:442px}
-  .lock-step-top{width:310px;height:11px}
-  .lock-step-front{width:330px}
-  .lock-text{top:512px}
-  .lock-caps{font-size:10.5px}
-  .lock-title{font-size:40px}
-  .lock-continue{margin-top:18px}
 
   /* Finale / deck view (P4) */
   .fin-head{top:54px;gap:6px;padding:0 44px}

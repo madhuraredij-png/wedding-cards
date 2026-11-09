@@ -1,5 +1,5 @@
 // @ts-check
-// Plays To the Wedding to the finale, by pointer and by keyboard, at desktop and phone sizes
+// Plays To the Wedding to the finale (ceremonies complete in place, then See the whole deck), by pointer and by keyboard, at desktop and phone sizes
 // (see the projects in playwright.config.js). Any console error, page error or failed
 // request fails the test. Also checks that public/cards.json is well formed.
 const { test, expect } = require('@playwright/test');
@@ -50,13 +50,16 @@ test('plays a full game to the finale by pointer', async ({ page, isMobile }) =>
     placed++;
 
     if (await page.evaluate(s => window.__game.state.placed[s].K && window.__game.state.placed[s].Q, suit)) {
-      await expect(page.locator('#lock')).toBeVisible();
-      await expect(page.locator('#lockTitle')).toHaveText(
-        { D: 'The Engagement', C: 'Satyanarayan Pooja', H: 'Just Married!', S: 'Wedding Reception' }[suit]);
-      await expect(page.locator('#continueBtn')).toHaveText(placed === 8 ? 'See the whole deck' : 'Continue');
-      await press(page.locator('#continueBtn'));
+      // Ceremony complete plays in place: the niche locks and celebrates, and play stays on screen.
+      const niche = page.locator(`#niches .niche[data-suit="${suit}"]`);
+      await expect(niche).toHaveClass(/locked/);
+      await expect(niche).toHaveClass(/celebrate/);
+      await expect(niche.locator('.cheer')).toHaveText(suit === 'H' ? 'Just Married!' : 'Ceremony complete');
+      await expect(page.locator('#play')).toBeVisible();
     }
   }
+  await expect(page.locator('#dealBtn')).toBeHidden();
+  await press(page.locator('#finaleBtn'));
   await expectFinale(page);
 });
 
@@ -106,17 +109,13 @@ test('plays a full game to the finale by keyboard', async ({ page }) => {
     await tabUntil(f => f.cls.includes('slot') && f.data.suit === suit && f.data.rank === rank, 10);
     await page.keyboard.press('Enter');
     placed++;
-    await expect(page.locator('#announce')).toContainText('placed at');
-
-    if (await page.evaluate(s => window.__game.state.placed[s].K && window.__game.state.placed[s].Q, suit)) {
-      await expect(page.locator('#continueBtn')).toBeFocused();
-      await page.keyboard.press('Enter');
-    }
-    if (placed < 8) {
-      // Focus lands back in the game, never lost on the page body
-      await expect.poll(async () => { const f = await focused(); return f.cls.includes('card') || f.id === 'dealBtn'; }).toBe(true);
-    }
+    await expect(page.locator('#announce')).toContainText('placed');
+    // Focus lands back in the game, never lost on the page body
+    await expect.poll(async () => { const f = await focused(); return f.cls.includes('card') || f.id === 'dealBtn' || f.id === 'finaleBtn'; }).toBe(true);
   }
+  // After the fourth pair, focus is on See the whole deck
+  await expect(page.locator('#finaleBtn')).toBeFocused();
+  await page.keyboard.press('Enter');
   await expectFinale(page);
 });
 

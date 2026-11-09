@@ -38,57 +38,54 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.f
 
 // Desktop: one 1440x900 stage scaled to fit. Phone (below 700px wide): a 390x844 stage scaled
 // the same way, except the finale, which is a taller page scaled to the width and scrolled.
+// The block-print frame is drawn around the whole window, not the stage, so it always meets the edges.
 const PHONE = matchMedia('(max-width: 699px)');
 const isPhone = () => PHONE.matches;
 const PHONE_W = 390, PHONE_H = 844, PHONE_FINALE_H = 1234;
 let sizer = null; // phone finale only: an in-flow spacer that gives #fit its scroll height
 function fit() {
-  const box = $('#fit').getBoundingClientRect();
-  if (sizer) sizer.style.height = '0px';
-  if (!isPhone()) {
-    const s = Math.min(box.width / 1440, box.height / 900);
-    stage.style.transform = `translate(${(box.width - 1440 * s) / 2}px, ${(box.height - 900 * s) / 2}px) scale(${s})`;
-    stage.dataset.scale = s;
-    return;
-  }
-  const tall = stage.classList.contains('tall');
-  const h = tall ? PHONE_FINALE_H : PHONE_H;
-  const s = tall ? box.width / PHONE_W : Math.min(box.width / PHONE_W, box.height / h);
-  stage.style.transform = `translate(${(box.width - PHONE_W * s) / 2}px, ${tall ? 0 : (box.height - h * s) / 2}px) scale(${s})`;
-  if (tall) {
-    if (!sizer) { sizer = document.createElement('div'); sizer.setAttribute('aria-hidden', 'true'); $('#fit').appendChild(sizer); }
-    sizer.style.height = Math.ceil(h * s) + 'px';
-  }
+  const box = $('#fit'), W = box.clientWidth, H = box.clientHeight;
+  const phone = isPhone(), tall = phone && stage.classList.contains('tall');
+  const sw = phone ? PHONE_W : 1440, sh = phone ? (tall ? PHONE_FINALE_H : PHONE_H) : 900;
+  const s = tall ? W / sw : Math.min(W / sw, H / sh);
+  stage.style.transform = `translate(${(W - sw * s) / 2}px, ${tall ? 0 : (H - sh * s) / 2}px) scale(${s})`;
   stage.dataset.scale = s;
-  phoneFrame(h);
+  let pageH = H;
+  if (tall) {
+    if (!sizer) { sizer = document.createElement('div'); sizer.setAttribute('aria-hidden', 'true'); box.appendChild(sizer); }
+    sizer.style.height = Math.ceil(sh * s) + 'px';
+    pageH = Math.max(H, Math.ceil(sh * s));
+  } else if (sizer) sizer.style.height = '0px';
+  // Band thickness follows the stage scale, so content (kept 66 stage px from its edges) never meets it.
+  drawFrame(W, pageH, (phone ? 0.5 : 1) * s);
 }
 
-// Phone frame: the same bands and rosettes as border.svg, drawn at half size (about 33px)
-// for whatever height the phone stage has.
-let frameSrc = null, frameH = 0;
-fetch('border.svg').then(r => r.text()).then(t => { frameSrc = t; frameH = 0; if (isPhone()) fit(); }).catch(() => {});
-function phoneFrame(h) {
-  if (!frameSrc || frameH === h) return;
-  frameH = h;
-  const W = PHONE_W * 2, H = h * 2;
+// The frame: border.svg's own bands and corner rosettes, redrawn for any size.
+// k is the band scale: 1 draws the full 66px frame, 0.5 the phone's 33px frame.
+let frameSrc = null, frameKey = '';
+fetch('border.svg').then(r => r.text()).then(t => { frameSrc = t; frameKey = ''; fit(); }).catch(() => {});
+function drawFrame(px, py, k) {
+  const key = [px, py, k.toFixed(4)].join('x');
+  if (!frameSrc || frameKey === key) return;
+  frameKey = key;
+  const W = px / k, H = py / k;
   const defs = frameSrc.slice(frameSrc.indexOf('<defs>'), frameSrc.indexOf('</defs>') + 7);
   const g0 = frameSrc.indexOf('<g transform="translate(0 0)">');
   const rosette = frameSrc.slice(frameSrc.indexOf('>', g0) + 1, frameSrc.indexOf('</g>', g0));
-  const box = (i, fill, extra = '') => `<rect x="${i}" y="${i}" width="${W - 2 * i}" height="${H - 2 * i}" fill="${fill}"${extra}/>`;
+  const box = (i, extra) => `<rect x="${i}" y="${i}" width="${W - 2 * i}" height="${H - 2 * i}" fill="none"${extra}/>`;
   const band = (i, t, h, v) => `<rect x="${i}" y="${i}" width="${W - 2 * i}" height="${t}" fill="url(#${h})"/><rect x="${i}" y="${H - i - t}" width="${W - 2 * i}" height="${t}" fill="url(#${h})"/>` +
     `<rect x="${i}" y="${i}" width="${t}" height="${H - 2 * i}" fill="url(#${v})"/><rect x="${W - i - t}" y="${i}" width="${t}" height="${H - 2 * i}" fill="url(#${v})"/>`;
   const corners = [[0, 0], [W - 70, 0], [0, H - 70], [W - 70, H - 70]].map(([x, y]) => `<g transform="translate(${x} ${y})">${rosette}</g>`).join('');
-  // Created on demand so the desktop page keeps exactly the prototype's elements.
-  let el = $('.frame-phone');
-  if (!el) { el = document.createElement('div'); el.className = 'frame-phone'; el.setAttribute('aria-hidden', 'true'); stage.appendChild(el); }
-  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${PHONE_W}" height="${h}" viewBox="0 0 ${W} ${H}">${defs}` +
-    box(4, 'none', ' stroke="#8EA86E" stroke-width="8"') + box(8.5, 'none', ' stroke="#5F7F45" stroke-width="1"') + box(11, 'none', ' stroke="#C44D78" stroke-width="1.6"') +
-    band(13, 14, 'chH', 'chV') + box(28.5, 'none', ' stroke="#8EA86E" stroke-width="1.6"') + band(30, 18, 'roH', 'roV') +
-    box(49, 'none', ' stroke="#8EA86E" stroke-width="1.6"') + band(50, 10, 'diH', 'diV') + box(61, 'none', ' stroke="#C44D78" stroke-width="2"') +
-    box(64.5, 'none', ' stroke="#8EA86E" stroke-width="1"') + corners + '</svg>';
+  let el = $('.frame-view');
+  if (!el) { el = document.createElement('div'); el.className = 'frame-view'; el.setAttribute('aria-hidden', 'true'); $('#fit').appendChild(el); }
+  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${py}" viewBox="0 0 ${W} ${H}">${defs}` +
+    box(4, ' stroke="#8EA86E" stroke-width="8"') + box(8.5, ' stroke="#5F7F45" stroke-width="1"') + box(11, ' stroke="#C44D78" stroke-width="1.6"') +
+    band(13, 14, 'chH', 'chV') + box(28.5, ' stroke="#8EA86E" stroke-width="1.6"') + band(30, 18, 'roH', 'roV') +
+    box(49, ' stroke="#8EA86E" stroke-width="1.6"') + band(50, 10, 'diH', 'diV') + box(61, ' stroke="#C44D78" stroke-width="2"') +
+    box(64.5, ' stroke="#8EA86E" stroke-width="1"') + corners + '</svg>';
 }
 function relayout() {
-  fit(); buildGarland();
+  fit();
   if (G && !$('#play').hidden) { renderNiches(); renderSpread(false); }
   if (!$('#finale').hidden) openFinale(finWin);
 }
@@ -152,20 +149,33 @@ function phoneSpot(i, n) {
   const d = j - (m - 1) / 2;
   return { left: 153 + Math.round(d * 98), top: (row ? 150 : 0) + Math.round(10 * Math.abs(d)), rot: 5 * d };
 }
+// Niches are built once per game and then updated in place, so a celebration in progress
+// is never cut short by a re-render.
 function renderNiches() {
-  $('#niches').innerHTML = SUITS.map(s => {
-    const p = G.placed[s.k], locked = G.locked.includes(s.k);
-    const slot = r => {
-      const filled = p[r], c = BY_ID[r + s.k];
-      const glow = !filled && G.selected && G.selected.rank === r;
-      const label = `${s.cer}, ${r === 'K' ? 'king' : 'queen'} slot, ${filled ? c.full + ' placed' : 'empty'}`;
-      return `<button type="button" class="slot ${r.toLowerCase()}${filled ? ' filled' : ''}${glow ? ' glow' : ''}" data-suit="${s.k}" data-rank="${r}" aria-label="${label}">${filled ? (c.img ? `<img src="cards/${c.img}" alt="">` : face(c)) : r}</button>`;
-    };
-    return `<div class="niche${locked ? ' locked' : ''}" data-suit="${s.k}" role="group" aria-label="${s.cer}${locked ? ', complete' : ''}">
-      <div class="n-rim"><div class="n-rim2" style="background:${s.rim}"><div class="n-recess" style="background:radial-gradient(ellipse at 50% 90%, ${s.recess[0]}, ${s.recess[1]} 75%);box-shadow:inset 0 18px 26px rgba(${s.sh},.45),inset 8px 0 14px rgba(${s.sh},.2),inset -8px 0 14px rgba(${s.sh},.2)">${slot('K')}${slot('Q')}</div></div></div>
+  const box = $('#niches');
+  if (!box.children.length) {
+    box.innerHTML = SUITS.map(s => `<div class="niche" data-suit="${s.k}" role="group">
+      <div class="n-rim"><div class="n-rim2" style="background:${s.rim}"><div class="n-recess" style="background:radial-gradient(ellipse at 50% 90%, ${s.recess[0]}, ${s.recess[1]} 75%);box-shadow:inset 0 18px 26px rgba(${s.sh},.45),inset 8px 0 14px rgba(${s.sh},.2),inset -8px 0 14px rgba(${s.sh},.2)">` +
+      ['K', 'Q'].map(r => `<button type="button" class="slot ${r.toLowerCase()}" data-suit="${s.k}" data-rank="${r}"></button>`).join('') +
+      `</div></div><div class="foil shine"></div></div>
       <div class="sill-top"></div><div class="sill-front"></div>
-      <p class="caps cer">${s.cer.toUpperCase()}</p></div>`;
-  }).join('');
+      <div class="cer-wrap"><p class="caps cer">${s.cer.toUpperCase()}</p><p class="cheer" aria-hidden="true">${s.k === 'H' ? 'Just Married!' : 'Ceremony complete'}</p></div></div>`).join('');
+  }
+  SUITS.forEach(s => {
+    const n = box.querySelector(`.niche[data-suit="${s.k}"]`), locked = G.locked.includes(s.k);
+    n.classList.toggle('locked', locked);
+    n.setAttribute('aria-label', s.cer + (locked ? ', complete' : ''));
+    ['K', 'Q'].forEach(r => {
+      const el = n.querySelector(`.slot[data-rank="${r}"]`), filled = G.placed[s.k][r], c = BY_ID[r + s.k];
+      const glow = !filled && G.selected && G.selected.rank === r;
+      el.className = `slot ${r.toLowerCase()}${filled ? ' filled' : ''}${glow ? ' glow' : ''}`;
+      el.setAttribute('aria-label', `${s.cer}, ${r === 'K' ? 'king' : 'queen'} slot, ${filled ? c.full + ' placed' : 'empty'}`);
+      if (el.dataset.filled !== String(filled)) {
+        el.dataset.filled = String(filled);
+        el.innerHTML = filled ? (c.img ? `<img src="cards/${c.img}" alt="">` : face(c)) + '<div class="foil"></div>' : r;
+      }
+    });
+  });
   $('#progress').textContent = `${G.locked.length} of 4 ceremonies complete`;
 }
 function renderSpread(animate) {
@@ -202,15 +212,15 @@ addEventListener('pointerdown', () => { keyboard = false; }, true);
 function say(msg) { const a = $('#announce'); a.textContent = ''; setTimeout(() => { a.textContent = msg; }, 30); }
 function cardBtn(c) { return c && $('#spread').querySelector(`.card[data-id="${c.id}"]`); }
 function focusSpread() {
-  // After placing a card or leaving the lock moment: the next royal to place, else Deal again.
+  // After placing a card: the next royal to place, else Deal again (or See the whole deck at the end).
   const next = G.spread.find(c => c.royal);
-  (cardBtn(next) || $('#dealBtn')).focus();
+  (cardBtn(next) || ($('#finaleBtn').hidden ? $('#dealBtn') : $('#finaleBtn'))).focus();
 }
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 
 function show(id) {
-  ['intro','play','lock','finale'].forEach(s => $('#' + s).hidden = s !== id);
+  ['intro','play','finale'].forEach(s => $('#' + s).hidden = s !== id);
   stage.classList.toggle('tall', id === 'finale');
   $('#fit').scrollTop = 0;
   fit();
@@ -253,12 +263,16 @@ function tryPlace(c, suit, rank) {
   G.selected = null; G.hover = null; G.pinned = null;
   const wasKeyboard = keyboard;
   renderNiches(); renderSpread(false);
-  say(`${c.full} placed at ${SUIT[suit].cer}.`);
+  if (!(G.placed[suit].K && G.placed[suit].Q)) say(`${c.full} placed at ${SUIT[suit].cer}.`);
   if (G.placed[suit].K && G.placed[suit].Q) {
     G.locked.push(suit);
     renderNiches();
-    setTimeout(() => openLock(suit), 650);
-  } else if (wasKeyboard) focusSpread();
+    const done = G.locked.length === 4;
+    if (done) { $('#dealBtn').hidden = true; $('#finaleBtn').hidden = false; }
+    setTimeout(() => celebrate(suit), 300);
+    say(`${c.full} placed. ${suit === 'H' ? 'Just married!' : 'Ceremony complete'}: ${SUIT[suit].cer}.` + (done ? ' All four ceremonies are complete. See the whole deck.' : ''));
+  }
+  if (wasKeyboard) focusSpread();
 }
 
 spreadEl.addEventListener('click', e => {
@@ -306,61 +320,28 @@ addEventListener('pointerup', e => {
   else { G.selected = null; renderNiches(); refreshLift(); }
 });
 
-// ---------- Lock moment ----------
-function lockFace(sel, c) {
-  // Swap the lock card's face in place: the illustration, or the "Art coming" face when there is none.
-  const el = $(sel), alt = c.full + ': ' + c.meaning.replace(/<[^>]+>/g, '');
-  if (c.img) {
-    const img = document.createElement('img');
-    img.id = el.id; img.src = 'cards/' + c.img; img.alt = alt;
-    el.replaceWith(img);
-  } else {
-    const tmp = document.createElement('div'); tmp.innerHTML = face(c);
-    const ph = tmp.firstElementChild; ph.id = el.id; ph.setAttribute('aria-label', alt);
-    el.replaceWith(ph);
+// ---------- Ceremony complete (in place) ----------
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function celebrate(suit) {
+  const n = $(`#niches .niche[data-suit="${suit}"]`); if (!n) return;
+  n.classList.remove('celebrate'); void n.offsetWidth; n.classList.add('celebrate');
+  clearTimeout(n._done); n._done = setTimeout(() => n.classList.remove('celebrate'), 2800);
+  if (reduceMotion.matches) return;
+  // A few bougainvillea petals and marigold beads drift out from the top of the arch.
+  const spread = isPhone() ? 0.6 : 1;
+  for (let i = 0; i < 9; i++) {
+    const p = document.createElement('i');
+    p.className = 'petal ' + (i % 3 === 1 ? 'bead' : 'br');
+    const a = Math.PI * (0.1 + 0.8 * i / 8) + (Math.random() - 0.5) * 0.3;
+    p.style.setProperty('--x', Math.round(-Math.cos(a) * (90 + Math.random() * 50) * spread) + 'px');
+    p.style.setProperty('--y', Math.round((-30 + Math.random() * 90) * spread) + 'px');
+    p.style.setProperty('--r', Math.round(Math.random() * 360 - 180) + 'deg');
+    p.style.animationDelay = Math.round(Math.random() * 180) + 'ms';
+    n.appendChild(p);
+    setTimeout(() => p.remove(), 2000);
   }
 }
-function openLock(suit) {
-  const s = SUIT[suit];
-  $('#lockRim2').style.background = s.rim;
-  $('#lockRecess').style.background = `radial-gradient(ellipse at 50% 80%, ${s.recess[0]}, ${s.recess[1]} 72%)`;
-  $('#lockRecess').style.boxShadow = `inset 0 28px 44px rgba(${s.sh},.45),inset 14px 0 24px rgba(${s.sh},.2),inset -14px 0 24px rgba(${s.sh},.2)`;
-  const K = BY_ID['K' + suit], Q = BY_ID['Q' + suit];
-  lockFace('#lockK', K); lockFace('#lockQ', Q);
-  $('#lockTitle').textContent = suit === 'H' ? 'Just Married!' : s.cer;
-  const last = G.locked.length === 4;
-  $('#continueBtn').textContent = last ? 'See the whole deck' : 'Continue';
-  $('#toast').classList.remove('show');
-  const lock = $('#lock'); lock.hidden = false; lock.classList.remove('show'); void lock.offsetWidth; lock.classList.add('show');
-  $('#continueBtn').focus({preventScroll:true});
-}
-// Garland around the arch and varmala across the couple. Phone uses the same shapes on the smaller arch.
-function buildGarland() {
-  const g = isPhone()
-    ? { cx: 195, cy: 280, r: 159, n: 24, bead: 7, vx: 131, vw: 128, vy: 368, sag: 200, vn: 16 }
-    : { cx: 720, cy: 384, r: 254, n: 30, bead: 11, vx: 600, vw: 240, vy: 484, sag: 240, vn: 22 };
-  const out = [], b = g.bead;
-  for (let i = 0; i <= g.n; i++) {
-    const a = Math.PI + Math.PI * i / g.n, pink = i % 3 === 1;
-    const x = Math.round(g.cx + g.r * Math.cos(a) - b), y = Math.round(g.cy + g.r * Math.sin(a) - b);
-    out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(i * 41) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
-  }
-  for (let k = 0; k <= g.vn; k++) {
-    const t = k / g.vn, x = Math.round(g.vx + g.vw * t - b), y = Math.round(g.vy + g.sag * t * (1 - t) - b), pink = k % 4 === 2;
-    out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(k * 37) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
-  }
-  $('#garland').innerHTML = out.join('');
-}
-buildGarland();
-// Leaving the lock moment: back to play (dealing fresh royals if none are left in the spread),
-// or on to the finale after the fourth pair.
-function leaveLock() {
-  $('#lock').hidden = true;
-  if (G.locked.length === 4) return true;
-  if (!G.spread.some(c => c.royal)) { deal(); renderNiches(); renderSpread(true); }
-  return false;
-}
-$('#continueBtn').addEventListener('click', () => { if (leaveLock()) openFinale(true); else if (keyboard) focusSpread(); });
+$('#finaleBtn').addEventListener('click', () => openFinale(true));
 
 // ---------- Finale / deck view ----------
 let finFrom = 'intro', finWin = false, finPinned = null;
@@ -382,7 +363,6 @@ function openFinale(win) {
       `<button type="button" class="mini${c.img ? '' : ' ph-mini'}" data-id="${c.id}" aria-label="${cardLabel(c)}" style="transform:rotate(${((i - 5) * 1.6).toFixed(1)}deg)">${face(c)}</button>`).join('')}</div></div>`;
   }).join('');
   $('#finStrip').innerHTML = stripHTML(finPinned && BY_ID[finPinned]);
-  if (!$('#lock').hidden) $('#lock').hidden = true;
   if ($('#finale').hidden) show('finale');
   if (finPinned) finFocus(finPinned);
 }
@@ -398,19 +378,19 @@ fin.addEventListener('click', e => { const m = e.target.closest('.mini'); if (m)
 $('#finBack').addEventListener('click', () => { show(finFrom === 'play' && G && G.locked.length < 4 ? 'play' : 'intro'); });
 
 // ---------- Navigation ----------
-async function start() { await cardsReady; newGame(); show('play'); renderNiches(); renderSpread(true); }
+async function start() {
+  await cardsReady; newGame();
+  $('#niches').innerHTML = ''; $('#dealBtn').hidden = false; $('#finaleBtn').hidden = true;
+  show('play'); renderNiches(); renderSpread(true);
+}
 $('#startBtn').addEventListener('click', start);
 document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]'); if (!g) return;
-  if (g.dataset.go === 'deck') {
-    // From the lock moment (phone), finish leaving it first so "Back" returns to a playable spread.
-    if (!$('#lock').hidden && leaveLock()) { openFinale(true); return; }
-    cardsReady.then(() => openFinale(false));
-  }
-  if (g.dataset.go === 'restart') { $('#lock').hidden = true; start(); }
+  if (g.dataset.go === 'deck') cardsReady.then(() => openFinale(G && G.locked.length === 4));
+  if (g.dataset.go === 'restart') start();
 });
 addEventListener('keydown', e => {
-  if (!G || $('#play').hidden || !$('#lock').hidden) return;
+  if (!G || $('#play').hidden) return;
   if (e.key === 'Escape' && G.selected) {
     const c = G.selected, onSlot = document.activeElement && document.activeElement.closest('.slot');
     G.selected = null; renderNiches(); refreshLift();

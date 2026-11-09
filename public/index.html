@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>To the Wedding</title>
 <meta name="description" content="A one-minute card game presenting Madhura Redij's illustrated wedding deck for Ketaki and Prasanna.">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -13,8 +13,6 @@
 <body>
 
 <div id="fit"><div id="stage">
-  <img class="frame" src="border.svg" alt="">
-
   <!-- INTRO -->
   <section class="screen" id="intro" aria-label="Start">
     <div aria-hidden="true">
@@ -61,40 +59,12 @@
     <div class="under">
       <div class="strip" id="strip" role="status"></div>
       <button class="btn" type="button" id="dealBtn">Deal again</button>
+      <button class="btn" type="button" id="finaleBtn" hidden>See the whole deck</button>
     </div>
     <div class="toast" id="toast" role="status"></div>
     <p class="sr-only" id="progress" role="status">0 of 4 ceremonies complete</p>
     <p class="sr-only" id="howto">Pick up a king or queen with Enter, then Tab to its ceremony's slot and press Enter to place it. Escape puts the card back.</p>
     <p class="sr-only" id="announce" role="status"></p>
-  </section>
-
-  <!-- LOCK -->
-  <section class="screen" id="lock" aria-label="Ceremony complete" hidden>
-    <header class="bar">
-      <p class="title-sm">To the Wedding</p>
-      <button class="link" type="button" data-go="restart">Play again</button>
-    </header>
-    <div class="lock-arch">
-      <div class="rim lock-rim" id="lockRim">
-        <div class="rim2" id="lockRim2"><div class="recess" id="lockRecess">
-          <div class="lock-cards">
-            <div class="big big-k"><img id="lockK" alt=""><div class="foil"></div></div>
-            <div class="big big-q"><img id="lockQ" alt=""><div class="foil"></div></div>
-          </div>
-        </div></div>
-      </div>
-      <div id="garland" aria-hidden="true"></div>
-      <div class="lock-plinth">
-        <div class="step-top lock-step-top"></div>
-        <div class="step-front lock-step-front" data-dias="20"></div>
-      </div>
-    </div>
-    <div class="lock-text">
-      <p class="caps lock-caps">CEREMONY COMPLETE</p>
-      <h2 class="lock-title" id="lockTitle"></h2>
-      <button class="btn lock-continue" type="button" id="continueBtn">Continue</button>
-      <button class="link phone-only" type="button" data-go="deck">View the deck</button>
-    </div>
   </section>
 
   <!-- FINALE / DECK VIEW -->
