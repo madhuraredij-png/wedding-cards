@@ -74,7 +74,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 
 ## Content
 
-Card data lives in `public/cards.json` (labels, meanings, image file names, alt text; `*asterisks*` for italics). See README.md for how to edit it. Card images are in `public/cards/` named `<rank><suit>.png` (lowercase, for example `5h.png`, `kd.png`).
+Card data lives in `public/cards.json` (labels, meanings, image file names, alt text; `*asterisks*` for italics). See README.md for how to edit it. Card images are in `public/cards/` named `<rank><suit>.jpg` (lowercase, for example `5h.jpg`, `kd.jpg`), 750×1050, exported from Madhura's Drive folder "wedding cards" (Artboard numbers mapped to cards in the copy doc). `back.png` is the card back. Every card face gets a CSS paper grain and soft top-left lighting (styles.css, "Printed-card finish"); the files themselves are flat art.
 
 Confirmed meanings (Madhura's own captions):
 - 5♥ *Saat phere*: the seven sacred rounds around the holy fire
@@ -85,8 +85,8 @@ Confirmed meanings (Madhura's own captions):
 - 2♣ Betel leaves used in various *poojas* during the ceremony
 
 Gaps to fill:
-- Only 22 card images exist, cropped from screenshots at 200×280. Replace them with full-resolution exports (about 750×1050, same names). Cards without art render a placeholder face that says "Art coming".
-- Every other card's meaning shows "Meaning to come." Labels like "Haldi", "Kalash", "Wedding meal", "Marathi lettering", "The knot", "Garlands" and "Mr. & Mrs. chairs" were guessed from the art and need confirming.
+- All 52 card images are in. Cards without an image would render a placeholder face that says "Art coming".
+- Suggested labels and meanings for every card are in the Claude Doc "To the Wedding: suggested card copy", waiting for Madhura's approval; until then the game shows "Meaning to come." Labels like "Haldi", "Kalash", "Wedding meal", "Marathi lettering", "The knot", "Garlands" and "Mr. & Mrs. chairs" were guessed from the art and need confirming.
 - The suit theme names are not yet decided.
 
 ## Next steps
