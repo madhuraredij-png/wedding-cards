@@ -86,7 +86,7 @@ Confirmed meanings (Madhura's own captions):
 
 Gaps to fill:
 - All 52 card images are in. Cards without an image would render a placeholder face that says "Art coming".
-- Suggested labels and meanings for every card are in the Claude Doc "To the Wedding: suggested card copy", waiting for Madhura's approval; until then the game shows "Meaning to come." Labels like "Haldi", "Kalash", "Wedding meal", "Marathi lettering", "The knot", "Garlands" and "Mr. & Mrs. chairs" were guessed from the art and need confirming.
+- Every card's label and meaning is approved (Claude Doc "To the Wedding: suggested card copy", all rows Approved or Confirmed) and in `cards.json`. Edit there or in `cards.json` directly.
 - The suit theme names are not yet decided.
 
 ## Next steps
