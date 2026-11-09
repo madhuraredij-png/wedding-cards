@@ -221,6 +221,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 
 function show(id) {
   ['intro','play','married','finale'].forEach(s => $('#' + s).hidden = s !== id);
+  $('#play').classList.remove('leaving');
   stage.classList.toggle('tall', id === 'finale');
   $('#fit').scrollTop = 0;
   fit();
@@ -271,7 +272,7 @@ function tryPlace(c, suit, rank) {
     setTimeout(() => celebrate(suit), 300);
     say(`${c.full} placed. ${suit === 'H' ? 'Just married!' : 'Ceremony complete'}: ${SUIT[suit].cer}.`);
     // After the fourth pair: let its niche celebrate, then the Just Married screen.
-    if (done) { setTimeout(openMarried, 1700); return; }
+    if (done) { setTimeout(openMarried, 1500); return; }
   }
   if (wasKeyboard) focusSpread();
 }
@@ -363,11 +364,17 @@ function openMarried() {
   $('#marriedRecess').style.boxShadow = `inset 0 28px 44px rgba(${s.sh},.45),inset 14px 0 24px rgba(${s.sh},.2),inset -14px 0 24px rgba(${s.sh},.2)`;
   marriedFace('#marriedK', BY_ID.KH); marriedFace('#marriedQ', BY_ID.QH);
   $('#toast').classList.remove('show');
-  show('married');
-  const m = $('#married'); m.classList.remove('show'); void m.offsetWidth; m.classList.add('show');
+  // Staged entrance (see #married.show in styles.css): play fades out while this screen fades in
+  // over it, the arch rises, the couple meet in the middle, the garland blooms bead by bead,
+  // then the petals and the words. Play is hidden once it has faded.
+  const m = $('#married'), play = $('#play');
+  play.classList.add('leaving');
+  m.classList.remove('show'); m.hidden = false; void m.offsetWidth; m.classList.add('show');
+  clearTimeout(openMarried._t);
+  openMarried._t = setTimeout(() => { if (!m.hidden) { play.hidden = true; play.classList.remove('leaving'); } }, 900);
+  setTimeout(() => { if (!m.hidden) shower(); }, reduceMotion.matches ? 0 : 1100);
   say('Just married! All four ceremonies are complete.');
   $('#marriedBtn').focus({ preventScroll: true });
-  shower();
 }
 function shower() {
   clearShower();
@@ -398,11 +405,11 @@ function buildGarland() {
   for (let i = 0; i <= g.n; i++) {
     const a = Math.PI + Math.PI * i / g.n, pink = i % 3 === 1;
     const x = Math.round(g.cx + g.r * Math.cos(a) - b), y = Math.round(g.cy + g.r * Math.sin(a) - b);
-    out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(i * 41) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
+    out.push(pink ? `<div class="br" style="--i:${i};left:${x}px;top:${y}px;transform:rotate(${(i * 41) % 90}deg)"></div>` : `<div class="bead" style="--i:${i};left:${x}px;top:${y}px"></div>`);
   }
   for (let k = 0; k <= g.vn; k++) {
     const t = k / g.vn, x = Math.round(g.vx + g.vw * t - b), y = Math.round(g.vy + g.sag * t * (1 - t) - b), pink = k % 4 === 2;
-    out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(k * 37) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
+    out.push(pink ? `<div class="br" style="--i:${g.n + 1 + k};left:${x}px;top:${y}px;transform:rotate(${(k * 37) % 90}deg)"></div>` : `<div class="bead" style="--i:${g.n + 1 + k};left:${x}px;top:${y}px"></div>`);
   }
   $('#garland').innerHTML = out.join('');
 }
@@ -417,7 +424,8 @@ function openFinale(win) {
   if ($('#finale').hidden) finFrom = win ? 'intro' : (!$('#play').hidden ? 'play' : 'intro');
   $('#finTitle').textContent = win ? 'The wedding is complete.' : 'The whole deck';
   $('#finSub').textContent = win ? 'Ketaki and Prasanna made it to every ceremony. ' + read : 'Fifty-two cards, one wedding. ' + read;
-  $('#finBack').textContent = win ? 'Back to start' : 'Back';
+  // On the win finale, Play again is the only action; the deck view keeps Back (to the game or the start).
+  $('#finBack').hidden = win;
   $('#couples').innerHTML = SUITS.map(s => {
     const q = BY_ID['Q' + s.k], k = BY_ID['K' + s.k];
     return `<div class="couple"><div class="pair"><button type="button" class="mini" data-id="${q.id}" aria-label="${cardLabel(q)}">${face(q)}</button><button type="button" class="mini" data-id="${k.id}" aria-label="${cardLabel(k)}">${face(k)}</button></div><span class="name">${s.cer}</span></div>`;
