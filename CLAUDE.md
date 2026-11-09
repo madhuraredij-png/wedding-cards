@@ -55,7 +55,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 - Type: Cormorant Garamond (italic for titles, spaced capitals for labels); Figtree for interface text.
 - Frame: `border.svg`'s bands and rosettes on every screen, drawn by game.js around the whole browser window (edge to edge, no page margin); on phone the scrolling finale is framed top to bottom. Band thickness scales with the stage (66px at 1440×900 scale, 33px on phone) so content never meets it. Sage band, pink zigzag, deep-pink flower band, sage diamond band, rosette tiles in the corners. Keep content inside about 66px from each edge.
 - Niches (recess / inner rim): Engagement pink / sage; Pooja warm orange / sage; Wedding golden yellow / red #A8322E; Reception dusky blue / pink. All have a marigold outer rim, a dotted inner rim, an inner shadow and a striped ledge with the name in spaced capitals.
-- Spread: 6 cards spaced apart with no overlap, on a gentle arc (center higher, small outward tilt), leaning back in perspective over a soft floor shadow. Short label under each card. Royals have a thin marigold outline.
+- Spread: 6 cards spaced apart with no overlap, on a gentle arc (center higher, small outward tilt), each card leaning back in its own perspective (not one shared tilted plane, which keystoned the end cards) over a soft floor shadow. A lifted card straightens up. Short label under each card. Royals have a thin marigold outline.
 - Buttons: one primary style everywhere (Deal, Deal again, See the whole deck, Play again): filled pink pill, 50px tall, cream spaced capitals, raised darker bottom edge. Secondary actions (View the deck, Back) are underlined text links stacked under the primary button.
 - Intro: names in spaced capitals, the title "To the Wedding", the line "Bring the couple to each of their four ceremonies." under it, a large arch holding a 3D stack of card backs on a plinth, Deal and View the deck stacked below. Two mirrored flower stems flank the arch.
 - Play screen corners: a short folk sprig in each bottom corner (one leaf pair, two bougainvillea bracts, a marigold), mirrored. No flower pots.
@@ -74,7 +74,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 
 ## Content
 
-Card data lives in `public/cards.json` (labels, meanings, image file names, alt text; `*asterisks*` for italics). See README.md for how to edit it. Card images are in `public/cards/` named `<rank><suit>.jpg` (lowercase, for example `5h.jpg`, `kd.jpg`), 750×1050, exported from Madhura's Drive folder "wedding cards" (Artboard numbers mapped to cards in the copy doc). `back.png` is the card back. Every card face gets a CSS paper grain and soft top-left lighting (styles.css, "Printed-card finish"); the files themselves are flat art.
+Card data lives in `public/cards.json` (labels, meanings, image file names, alt text; `*asterisks*` for italics). See README.md for how to edit it. Card images are in `public/cards/` named `<rank><suit>.jpg` (lowercase, for example `5h.jpg`, `kd.jpg`), 750×1050, exported from Madhura's Drive folder "wedding cards" (Artboard numbers mapped to cards in the copy doc). `back.png` is the card back. Every card face gets a CSS paper finish (styles.css, "Printed-card finish"): fibres and grain drawn with plain transparency, a warm top-left highlight, a soft shade and an edge vignette. No blend modes, so it renders the same in every browser; the image files stay flat art.
 
 Confirmed meanings (Madhura's own captions):
 - 5♥ *Saat phere*: the seven sacred rounds around the holy fire
