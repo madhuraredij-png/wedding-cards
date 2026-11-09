@@ -2,6 +2,8 @@
 
 A one-minute card game presenting Madhura Redij's illustrated wedding deck for Ketaki and Prasanna. Static site: plain HTML, CSS and JavaScript in `public/`, with no build step.
 
+Live at https://wedding-cards-ten.vercel.app (deployed by Vercel from `main`; every other branch gets its own preview link).
+
 ## Run it locally
 
 ```bash
