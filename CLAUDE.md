@@ -30,7 +30,7 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 4. Royals left unplaced when the player deals again go back into the royal pool.
 5. A royal goes only in its own ceremony's matching slot (king in K, queen in Q). Wrong placements are never penalized: the card shakes and a hint appears.
 6. When both slots of a ceremony are filled, the pair locks and the ceremony-complete moment plays in place, on the play screen.
-7. After the fourth lock, "Deal again" becomes "See the whole deck", which opens the finale.
+7. After the fourth lock (and its in-place moment), the Just Married screen plays; its "See the whole deck" opens the finale.
 8. "Deal again" works at any time. "View the deck" skips the game and shows the full deck.
 
 ## Interaction
@@ -40,9 +40,10 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 - Meaning strip: single row, stamp-style (perforated cream edge). Rank and suit symbol first, for example "5 ♥", in red for ♥/♦. Then one sentence, on one line.
 - Foil sheen appears only on a royal that is lifted (selected in the spread, or in its niche during the ceremony-complete moment). Cards at rest never shine.
 - A completed pair leans together and overlaps inside its niche, which gains a marigold glow.
-- Ceremony complete (in place, no separate screen): the pair leans together in its niche, a foil shimmer sweeps the niche and both cards twice, the marigold glow pulses, a few bougainvillea petals and marigold beads drift from the arch, and the label under the niche reads "Ceremony complete" ("Just Married!" for The Wedding) for about 3 seconds before returning to the ceremony name. Play continues on the same screen. With reduced motion: static sheen and caption only, no petals or pulse. (A full-screen lock moment existed before; it is in git history if ever wanted back.)
+- Ceremony complete (in place, no separate screen): the pair leans together in its niche, a foil shimmer sweeps the niche and both cards twice, the marigold glow pulses, a few bougainvillea petals and marigold beads drift from the arch, and the label under the niche reads "Ceremony complete" ("Just Married!" for The Wedding) for about 3 seconds before returning to the ceremony name. Play continues on the same screen. With reduced motion: static sheen and caption only, no petals or pulse.
+- Just Married (once, after all four ceremonies, about 1.7s after the fourth pair locks): the large arch in The Wedding's colours with the hearts couple (wedding outfits) overlapping with foil, a marigold-and-bougainvillea garland around the arch and a varmala across the cards, on a patterned plinth. "ALL FOUR CEREMONIES COMPLETE" over "Just Married!", then "See the whole deck". "Play again" sits in the header. A full-window shower of petals and marigold beads falls over it in two waves (under the frame); none with reduced motion.
 - Play header: the title on the left and "View the deck" on the right. There is no visible ceremony counter; progress is announced to screen readers only.
-- Keyboard: Tab to a royal, Enter picks it up; Tab and Shift+Tab then cycle between that card and the empty slots of its rank; Enter places; Escape puts it back. After placing, focus moves to the next royal (or Deal again; after the fourth pair, See the whole deck). Focus is only moved for keyboard users.
+- Keyboard: Tab to a royal, Enter picks it up; Tab and Shift+Tab then cycle between that card and the empty slots of its rank; Enter places; Escape puts it back. After placing, focus moves to the next royal (or Deal again); on the Just Married screen it is on See the whole deck. Focus is only moved for keyboard users.
 - Screen readers: every card button is named by card, label and meaning (royals add "Royal card" and `aria-pressed` while picked up); slots read "<ceremony>, king slot, empty"; placements and progress are announced through hidden status lines.
 - Respect `prefers-reduced-motion`: no deal-in slide, static sheen.
 
@@ -65,8 +66,9 @@ Serve `public/` with any static server, for example `npx serve public` or `pytho
 - Built on a 390×844 stage scaled to fit the screen, like desktop's 1440×900. On short screens (e.g. Safari with its bars) the stage shrinks and cream shows at its sides, still inside the window-wide frame; nothing is cropped. The finale is a 390×1234 page scaled to the width and scrolled.
 - Wording on phone says "Tap" where desktop says "Hover" (meaning strip prompt, finale subtitle).
 - Intro: names, title (42px) and instruction at the top; a 270px arch with three card backs on a plinth; Deal and View the deck stacked below; small mirrored folk sprigs in the bottom corners.
-- Play: header with the title and "View the deck" (no ceremony counter; it was removed on desktop too and is kept only as screen-reader text). Niches in a 2×2 grid (132×104 arches, 38×53 slots, 9.5px ceremony labels). The spread is two rows of three cards (84×118), each row on a gentle arc. The lifted card scales to 125%. The meaning strip may wrap to two lines on phone. Deal again (44px tall; See the whole deck after the fourth pair) sits under the strip. No corner sprigs on this screen.
-- Ceremony complete: the same in-place moment as desktop, in the 2×2 niches (caption 15px). Mockup P3's full-screen lock moment is no longer used.
+- Play: header with the title and "View the deck" (no ceremony counter; it was removed on desktop too and is kept only as screen-reader text). Niches in a 2×2 grid (132×104 arches, 38×53 slots, 9.5px ceremony labels). The spread is two rows of three cards (84×118), each row on a gentle arc. The lifted card scales to 125%. The meaning strip may wrap to two lines on phone. Deal again (44px tall) sits under the strip. No corner sprigs on this screen.
+- Ceremony complete: the same in-place moment as desktop, in the 2×2 niches (caption 15px).
+- Just Married: mockup P3's layout (300px arch, couple at 104×146, garland and varmala, plinth, 40px heading), with "ALL FOUR CEREMONIES COMPLETE" and See the whole deck; smaller, fewer petals in the shower.
 - Finale: a scrolling page. Title and subtitle, the four couples in a 2×2 grid, then the four suits as stacked fans of 11 cards (50×70, overlapping by 25px), the meaning strip, Play again and Back to start.
 
 ## Content

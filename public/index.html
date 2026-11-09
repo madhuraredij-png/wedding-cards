@@ -59,12 +59,39 @@
     <div class="under">
       <div class="strip" id="strip" role="status"></div>
       <button class="btn" type="button" id="dealBtn">Deal again</button>
-      <button class="btn" type="button" id="finaleBtn" hidden>See the whole deck</button>
     </div>
     <div class="toast" id="toast" role="status"></div>
     <p class="sr-only" id="progress" role="status">0 of 4 ceremonies complete</p>
     <p class="sr-only" id="howto">Pick up a king or queen with Enter, then Tab to its ceremony's slot and press Enter to place it. Escape puts the card back.</p>
     <p class="sr-only" id="announce" role="status"></p>
+  </section>
+
+  <!-- JUST MARRIED: after all four ceremonies -->
+  <section class="screen" id="married" aria-label="Just married" hidden>
+    <header class="bar">
+      <p class="title-sm">To the Wedding</p>
+      <button class="link" type="button" data-go="restart">Play again</button>
+    </header>
+    <div class="married-arch">
+      <div class="rim married-rim">
+        <div class="rim2" id="marriedRim2"><div class="recess" id="marriedRecess">
+          <div class="married-cards">
+            <div class="big big-k"><img id="marriedK" alt=""><div class="foil"></div></div>
+            <div class="big big-q"><img id="marriedQ" alt=""><div class="foil"></div></div>
+          </div>
+        </div></div>
+      </div>
+      <div id="garland" aria-hidden="true"></div>
+      <div class="married-plinth">
+        <div class="step-top married-step-top"></div>
+        <div class="step-front married-step-front" data-dias="20"></div>
+      </div>
+    </div>
+    <div class="married-text">
+      <p class="caps married-caps">ALL FOUR CEREMONIES COMPLETE</p>
+      <h2 class="married-title">Just Married!</h2>
+      <button class="btn married-continue" type="button" id="marriedBtn">See the whole deck</button>
+    </div>
   </section>
 
   <!-- FINALE / DECK VIEW -->

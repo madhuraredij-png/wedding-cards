@@ -121,9 +121,16 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .strip .txt.quiet{color:var(--ink-soft)}
 .toast{position:absolute;left:50%;top:356px;translate:-50% 0;z-index:30;background:var(--ink);color:#FBF3E6;font-size:14px;padding:9px 18px;border-radius:20px;box-shadow:0 10px 20px rgba(40,20,10,.25);opacity:0;transition:opacity .25s;pointer-events:none}
 .toast.show{opacity:1}
+/* Just married (after all four ceremonies) */
+#married{background:var(--ground);z-index:20}
+#married .big{position:absolute;width:160px;height:224px;border-radius:10px;overflow:hidden;box-shadow:0 3px 3px rgba(40,30,20,.2),0 30px 40px -10px rgba(40,30,20,.55)}
+#married .big img{display:block;width:100%;height:100%}
+#married .big .foil{opacity:1;animation:sheen 2.6s ease-in-out infinite}
 
 .bead{position:absolute;width:22px;height:22px;border-radius:50%;background:repeating-radial-gradient(circle,#F2A23A 0 3px,#E0742A 3px 6px,#C9462C 6px 8px);box-shadow:0 3px 4px rgba(120,50,10,.35),inset 0 -2px 3px rgba(110,30,10,.35)}
 .br{position:absolute;width:18px;height:18px;border-radius:2px 12px 2px 12px;background:var(--bloom);box-shadow:inset -2px -2px 0 rgba(120,20,60,.25),0 3px 4px rgba(120,20,60,.25)}
+#married.show .married-arch{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;translate:0 30px}}
 
 /* Finale */
 .couples{position:absolute;top:184px;left:0;right:0;display:flex;justify-content:center;gap:64px}
@@ -147,6 +154,8 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .couple .mini.on{transform:translateY(-10px) scale(1.12) !important;z-index:5}
 
 @media (prefers-reduced-motion: reduce){
+  .spot.deal,#married.show .married-arch{animation:none}
+  .lifted .foil,#married .big .foil{animation:none;background-position:40% 0}
   .card,.slot,.mini{transition:none}
 }
 
@@ -170,6 +179,17 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .intro-actions{position:absolute;left:0;right:0;bottom:70px;display:flex;flex-direction:column;align-items:center;gap:14px}
 .corner-l{left:66px}
 .corner-r{left:1164px;transform:scaleX(-1)}
+.married-rim{position:absolute;left:470px;top:134px;width:500px;height:470px;box-shadow:0 2px 0 rgba(255,255,255,.55) inset,0 0 0 6px rgba(231,169,60,.25),0 0 60px rgba(231,169,60,.45),0 40px 60px -24px rgba(90,40,30,.45)}
+.married-cards{position:absolute;inset:0;perspective:1000px}
+.big-k{left:98px;top:140px;transform:rotateY(14deg) rotateZ(-5deg)}
+.big-q{left:176px;top:140px;transform:rotateY(-14deg) rotateZ(5deg);z-index:2}
+.married-plinth{position:absolute;left:0;right:0;top:604px;display:flex;flex-direction:column;align-items:center}
+.married-step-top{width:540px}
+.married-step-front{width:580px}
+.married-text{position:absolute;left:0;right:0;top:684px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.married-caps{margin:0;letter-spacing:.32em;color:#8A5A12}
+.married-title{margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:48px;line-height:1;color:var(--rose)}
+.married-continue{margin-top:10px}
 .fin-head{position:absolute;top:80px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
 .fin-title{margin:0;font-family:var(--display);font-style:italic;font-weight:500;font-size:48px;line-height:1.05;color:var(--rose)}
 .fin-sub{margin:0;font-size:15px;color:var(--ink-soft)}
@@ -177,6 +197,14 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
 .fin-actions{display:flex;flex-direction:column;align-items:center;gap:12px}
 .fan-label{font-size:12px}
 .intro-corner{display:none}
+
+/* All four ceremonies complete: a full-window shower of petals and marigold beads over the Just Married screen. */
+.shower{position:absolute;inset:0;z-index:35;pointer-events:none;overflow:hidden}
+.shower i{position:absolute;top:-40px;left:var(--x);width:var(--w);height:var(--w);animation:fall var(--t) cubic-bezier(.35,.1,.65,1) var(--d) both}
+.shower i.bead{background:repeating-radial-gradient(circle,#F2A23A 0 calc(var(--w) * .14),#E0742A calc(var(--w) * .14) calc(var(--w) * .27),#C9462C calc(var(--w) * .27) calc(var(--w) * .36))}
+.shower i.br.soft{background:#EE8DB5}
+@keyframes fall{0%{opacity:0;transform:translate(0,0) rotate3d(1,1,0,0deg)}6%{opacity:1}100%{opacity:.85;transform:translate(var(--sx),calc(100vh + 80px)) rotate3d(1,.6,.2,var(--r))}}
+@media (prefers-reduced-motion: reduce){ .shower{display:none} }
 
 /* Ceremony complete, in place: when a pair locks, a foil shimmer sweeps the niche and both cards,
    the marigold glow pulses, petals drift from the arch, and the label briefly reads
@@ -277,9 +305,22 @@ header.bar{position:absolute;top:80px;left:96px;right:96px;display:flex;align-it
   .strip .txt{font-size:13px;white-space:normal}
   #dealBtn{height:44px;border-radius:22px}
   .toast{top:40px;max-width:300px;width:max-content;text-align:center;font-size:12.5px;padding:8px 14px}
+  /* Just married (P3) */
+  .married-rim{left:45px;top:130px;width:300px;height:312px;padding:10px 10px 0;box-shadow:0 2px 0 rgba(255,255,255,.55) inset,0 0 0 4px rgba(231,169,60,.25),0 0 40px rgba(231,169,60,.45),0 26px 40px -18px rgba(90,40,30,.45)}
+  .married-rim .rim2{padding:10px 10px 0;outline-width:2px;outline-offset:-5px}
+  #married .big{width:104px;height:146px;border-radius:7px}
+  .big-k{left:54px;top:114px}
+  .big-q{left:104px;top:114px}
 
   .bead{width:14px;height:14px;background:repeating-radial-gradient(circle,#F2A23A 0 2px,#E0742A 2px 4px,#C9462C 4px 5px)}
   .br{width:12px;height:12px;border-radius:2px 8px 2px 8px}
+  .married-plinth{top:442px}
+  .married-step-top{width:310px;height:11px}
+  .married-step-front{width:330px}
+  .married-text{top:512px}
+  .married-caps{font-size:10.5px}
+  .married-title{font-size:40px}
+  .married-continue{margin-top:18px}
 
   /* Finale / deck view (P4) */
   .fin-head{top:54px;gap:6px;padding:0 44px}

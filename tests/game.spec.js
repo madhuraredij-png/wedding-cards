@@ -1,5 +1,5 @@
 // @ts-check
-// Plays To the Wedding to the finale (ceremonies complete in place, then See the whole deck), by pointer and by keyboard, at desktop and phone sizes
+// Plays To the Wedding to the finale (ceremonies complete in place, then the Just Married screen), by pointer and by keyboard, at desktop and phone sizes
 // (see the projects in playwright.config.js). Any console error, page error or failed
 // request fails the test. Also checks that public/cards.json is well formed.
 const { test, expect } = require('@playwright/test');
@@ -58,8 +58,12 @@ test('plays a full game to the finale by pointer', async ({ page, isMobile }) =>
       await expect(page.locator('#play')).toBeVisible();
     }
   }
-  await expect(page.locator('#dealBtn')).toBeHidden();
-  await press(page.locator('#finaleBtn'));
+  // After the fourth ceremony: the Just Married screen with its petal shower, then the deck.
+  await expect(page.locator('#married')).toBeVisible();
+  await expect(page.locator('#married .married-title')).toHaveText('Just Married!');
+  await expect(page.locator('.shower i').first()).toBeAttached();
+  await press(page.locator('#marriedBtn'));
+  await expect(page.locator('.shower')).toHaveCount(0);
   await expectFinale(page);
 });
 
@@ -111,10 +115,11 @@ test('plays a full game to the finale by keyboard', async ({ page }) => {
     placed++;
     await expect(page.locator('#announce')).toContainText('placed');
     // Focus lands back in the game, never lost on the page body
-    await expect.poll(async () => { const f = await focused(); return f.cls.includes('card') || f.id === 'dealBtn' || f.id === 'finaleBtn'; }).toBe(true);
+    if (placed < 8) await expect.poll(async () => { const f = await focused(); return f.cls.includes('card') || f.id === 'dealBtn'; }).toBe(true);
   }
-  // After the fourth pair, focus is on See the whole deck
-  await expect(page.locator('#finaleBtn')).toBeFocused();
+  // After the fourth ceremony, the Just Married screen opens with focus on See the whole deck
+  await expect(page.locator('#married')).toBeVisible();
+  await expect(page.locator('#marriedBtn')).toBeFocused();
   await page.keyboard.press('Enter');
   await expectFinale(page);
 });

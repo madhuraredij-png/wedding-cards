@@ -85,7 +85,7 @@ function drawFrame(px, py, k) {
     box(64.5, ' stroke="#8EA86E" stroke-width="1"') + corners + '</svg>';
 }
 function relayout() {
-  fit();
+  fit(); buildGarland();
   if (G && !$('#play').hidden) { renderNiches(); renderSpread(false); }
   if (!$('#finale').hidden) openFinale(finWin);
 }
@@ -212,15 +212,15 @@ addEventListener('pointerdown', () => { keyboard = false; }, true);
 function say(msg) { const a = $('#announce'); a.textContent = ''; setTimeout(() => { a.textContent = msg; }, 30); }
 function cardBtn(c) { return c && $('#spread').querySelector(`.card[data-id="${c.id}"]`); }
 function focusSpread() {
-  // After placing a card: the next royal to place, else Deal again (or See the whole deck at the end).
+  // After placing a card: the next royal to place, else Deal again.
   const next = G.spread.find(c => c.royal);
-  (cardBtn(next) || ($('#finaleBtn').hidden ? $('#dealBtn') : $('#finaleBtn'))).focus();
+  (cardBtn(next) || $('#dealBtn')).focus();
 }
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 
 function show(id) {
-  ['intro','play','finale'].forEach(s => $('#' + s).hidden = s !== id);
+  ['intro','play','married','finale'].forEach(s => $('#' + s).hidden = s !== id);
   stage.classList.toggle('tall', id === 'finale');
   $('#fit').scrollTop = 0;
   fit();
@@ -268,9 +268,10 @@ function tryPlace(c, suit, rank) {
     G.locked.push(suit);
     renderNiches();
     const done = G.locked.length === 4;
-    if (done) { $('#dealBtn').hidden = true; $('#finaleBtn').hidden = false; }
     setTimeout(() => celebrate(suit), 300);
-    say(`${c.full} placed. ${suit === 'H' ? 'Just married!' : 'Ceremony complete'}: ${SUIT[suit].cer}.` + (done ? ' All four ceremonies are complete. See the whole deck.' : ''));
+    say(`${c.full} placed. ${suit === 'H' ? 'Just married!' : 'Ceremony complete'}: ${SUIT[suit].cer}.`);
+    // After the fourth pair: let its niche celebrate, then the Just Married screen.
+    if (done) { setTimeout(openMarried, 1700); return; }
   }
   if (wasKeyboard) focusSpread();
 }
@@ -341,7 +342,71 @@ function celebrate(suit) {
     setTimeout(() => p.remove(), 2000);
   }
 }
-$('#finaleBtn').addEventListener('click', () => openFinale(true));
+
+// ---------- Just married (after all four ceremonies) ----------
+// The big arch in The Wedding's colours with the couple's wedding outfits, garland and varmala,
+// and a full-window shower of petals.
+function marriedFace(sel, c) {
+  // The illustration, or the "Art coming" face when there is none.
+  const el = $(sel), alt = c.full + ': ' + c.meaning.replace(/<[^>]+>/g, '');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = c.img ? `<img src="cards/${c.img}" alt="">` : face(c);
+  const node = tmp.firstElementChild; node.id = el.id;
+  if (c.img) node.alt = alt; else node.setAttribute('aria-label', alt);
+  el.replaceWith(node);
+}
+function openMarried() {
+  if (!G || G.locked.length < 4 || $('#play').hidden) return;
+  const s = SUIT.H;
+  $('#marriedRim2').style.background = s.rim;
+  $('#marriedRecess').style.background = `radial-gradient(ellipse at 50% 80%, ${s.recess[0]}, ${s.recess[1]} 72%)`;
+  $('#marriedRecess').style.boxShadow = `inset 0 28px 44px rgba(${s.sh},.45),inset 14px 0 24px rgba(${s.sh},.2),inset -14px 0 24px rgba(${s.sh},.2)`;
+  marriedFace('#marriedK', BY_ID.KH); marriedFace('#marriedQ', BY_ID.QH);
+  $('#toast').classList.remove('show');
+  show('married');
+  const m = $('#married'); m.classList.remove('show'); void m.offsetWidth; m.classList.add('show');
+  say('Just married! All four ceremonies are complete.');
+  $('#marriedBtn').focus({ preventScroll: true });
+  shower();
+}
+function shower() {
+  clearShower();
+  if (reduceMotion.matches) return;
+  const layer = document.createElement('div'); layer.className = 'shower'; layer.setAttribute('aria-hidden', 'true');
+  const k = +stage.dataset.scale * (isPhone() ? 0.9 : 1.25);
+  const n = isPhone() ? 40 : 90;
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    const kind = i % 4 === 0 ? 'bead' : i % 4 === 2 ? 'br soft' : 'br';
+    const w = Math.round((kind === 'bead' ? 16 : 20) * (0.7 + Math.random() * 0.8) * k);
+    const wave = i < n * 0.6 ? 0 : 1600;
+    html += `<i class="${kind}" style="--x:${(Math.random() * 100).toFixed(1)}%;--w:${w}px;--t:${(3.6 + Math.random() * 2.4).toFixed(2)}s;--d:${wave + Math.round(Math.random() * 1400)}ms;--sx:${Math.round((Math.random() - 0.5) * 220 * k)}px;--r:${Math.round(360 + Math.random() * 540)}deg"></i>`;
+  }
+  layer.innerHTML = html;
+  $('#fit').appendChild(layer);
+  layer._t = setTimeout(clearShower, 9000);
+}
+function clearShower() { const l = $('.shower'); if (l) { clearTimeout(l._t); l.remove(); } }
+$('#marriedBtn').addEventListener('click', () => { clearShower(); openFinale(true); });
+
+// Garland around the arch and varmala across the couple. Phone uses the same shapes on the smaller arch.
+function buildGarland() {
+  const g = isPhone()
+    ? { cx: 195, cy: 280, r: 159, n: 24, bead: 7, vx: 131, vw: 128, vy: 368, sag: 200, vn: 16 }
+    : { cx: 720, cy: 384, r: 254, n: 30, bead: 11, vx: 600, vw: 240, vy: 484, sag: 240, vn: 22 };
+  const out = [], b = g.bead;
+  for (let i = 0; i <= g.n; i++) {
+    const a = Math.PI + Math.PI * i / g.n, pink = i % 3 === 1;
+    const x = Math.round(g.cx + g.r * Math.cos(a) - b), y = Math.round(g.cy + g.r * Math.sin(a) - b);
+    out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(i * 41) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
+  }
+  for (let k = 0; k <= g.vn; k++) {
+    const t = k / g.vn, x = Math.round(g.vx + g.vw * t - b), y = Math.round(g.vy + g.sag * t * (1 - t) - b), pink = k % 4 === 2;
+    out.push(pink ? `<div class="br" style="left:${x}px;top:${y}px;transform:rotate(${(k * 37) % 90}deg)"></div>` : `<div class="bead" style="left:${x}px;top:${y}px"></div>`);
+  }
+  $('#garland').innerHTML = out.join('');
+}
+buildGarland();
 
 // ---------- Finale / deck view ----------
 let finFrom = 'intro', finWin = false, finPinned = null;
@@ -380,13 +445,13 @@ $('#finBack').addEventListener('click', () => { show(finFrom === 'play' && G && 
 // ---------- Navigation ----------
 async function start() {
   await cardsReady; newGame();
-  $('#niches').innerHTML = ''; $('#dealBtn').hidden = false; $('#finaleBtn').hidden = true;
+  $('#niches').innerHTML = ''; clearShower();
   show('play'); renderNiches(); renderSpread(true);
 }
 $('#startBtn').addEventListener('click', start);
 document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]'); if (!g) return;
-  if (g.dataset.go === 'deck') cardsReady.then(() => openFinale(G && G.locked.length === 4));
+  if (g.dataset.go === 'deck') cardsReady.then(() => { clearShower(); openFinale(G && G.locked.length === 4); });
   if (g.dataset.go === 'restart') start();
 });
 addEventListener('keydown', e => {
